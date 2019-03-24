@@ -10,6 +10,7 @@ public:
 	bool encode(QDataStream &inp, std::string key = "");
 	bool decode(QDataStream &out, std::string key = "");
 	bool reset(const QImage &_img);
+	inline const StegMap *steg() const { return map; }
 	inline const QImage &image() const { return img; }
 	StegArch(const QImage &_img);
 	StegArch();

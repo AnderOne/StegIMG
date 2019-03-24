@@ -22,6 +22,21 @@ void MainWindow::onInputImageClick() {
 	ui->inputImageView->update((ar = new StegArch(img))->image());
 	ui->buttonEncrypt->setEnabled(true);
 	ui->buttonDecrypt->setEnabled(true);
+
+	//Calculation of steganographic capacity:
+	uint32_t size;
+	QString info = QString::number(size = ar->steg()->size()) + " bytes";
+	double mb = (double) size / (1024 * 1024);
+	double kb = (double) size / (1024);
+	if (mb > 1.0)
+		info = QString::number(mb, 'f', 2) + " MB (" + info + ")";
+	else
+	if (kb > 1.0) {
+		info = QString::number(kb, 'f', 2) + " KB (" + info + ")";
+	}
+	ui->inputImageInfo->setText(
+	"Capacity: " + info
+	);
 }
 
 void MainWindow::onEncryptClick() {
