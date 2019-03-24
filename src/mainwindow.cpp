@@ -70,7 +70,16 @@ void MainWindow::onEncryptClick() {
 		);
 		return;
 	}
-	ar->image().save(fileName, "png");
+	//Check for extension:
+	QString name = fileName.section('/', -1).toLower();
+	QString end = name.section('.', -1);
+	if (((end != "png") && (end != "bmp")) ||
+	     (end == name))
+	     fileName += "." + (end = "bmp");
+	ar->image().save(
+	fileName,
+	end.toStdString().c_str()
+	);
 }
 
 void MainWindow::onDecryptClick() {
