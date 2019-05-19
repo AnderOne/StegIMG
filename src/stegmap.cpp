@@ -18,11 +18,6 @@ qint64 StegMap::writeData(const char *data, qint64 maxSize) {
 	return maxSize;
 }
 
-qint64 StegMap::readLineData(char *data, qint64 maxSize) {
-
-	return StegMap::readData(data, maxSize);
-}
-
 qint64 StegMap::readData(char *data, qint64 maxSize) {
 
 	for (int i = 0; i < maxSize; ++ i) { if (StegMap::atEnd()) return i; data[i] = get(); }

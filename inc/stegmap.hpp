@@ -9,7 +9,6 @@
 struct StegMap: public QIODevice {
 protected:
 	qint64 writeData(const char *data, qint64 maxSize) override;
-	qint64 readLineData(char *data, qint64 maxSize) override;
 	qint64 readData(char *data, qint64 maxSize) override;
 public:
 	virtual bool reset(std::string key);
