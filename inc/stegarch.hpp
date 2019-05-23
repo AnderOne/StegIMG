@@ -1,6 +1,7 @@
 #ifndef __INCLUDE_STEGARCH_H
 #define __INCLUDE_STEGARCH_H
 
+#include <binstream.hpp>
 #include <stegmap.hpp>
 #include <QDataStream>
 #include <QImage>

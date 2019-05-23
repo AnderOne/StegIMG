@@ -28,12 +28,14 @@ INCLUDEPATH += inc
 HEADERS += \
     inc/stegmap.hpp \
     inc/stegarch.hpp \
+    inc/binstream.hpp \
     inc/imageview.hpp \
     inc/mainwindow.hpp
 
 SOURCES += \
     src/stegmap.cpp \
     src/stegarch.cpp \
+    src/binstream.cpp \
     src/imageview.cpp \
     src/mainwindow.cpp \
     src/main.cpp
