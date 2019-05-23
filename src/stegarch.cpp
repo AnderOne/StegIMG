@@ -17,7 +17,7 @@ bool StegArch::encode(QDataStream &inp, std::string key) {
 	BinStream bin(map, QIODevice::WriteOnly);
 	str.setDevice(&bin);
 	while (!inp.atEnd()) {
-		size_t n = inp.readRawData(buff, BUFF_SIZE);
+		int n = inp.readRawData(buff, BUFF_SIZE);
 		str.writeRawData(buff, n);
 		if (str.status() != QDataStream::Ok) {
 			return false;
@@ -47,8 +47,8 @@ bool StegArch::decode(QDataStream &out, std::string key) {
 	str.setDevice(&bin);
 	while (true) {
 		size_t m = std::min(len, (uint32_t) BUFF_SIZE);
-		size_t n = str.readRawData(buff, m);
-		if (!n) break;
+		int n = str.readRawData(buff, m);
+		if (n <= 0) break;
 		out.writeRawData(buff, n);
 		len -= n;
 	}
