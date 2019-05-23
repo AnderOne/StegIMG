@@ -3,6 +3,7 @@
 
 #include <binstream.hpp>
 #include <rlestream.hpp>
+#include <lzwstream.hpp>
 #include <stegmap.hpp>
 #include <QDataStream>
 #include <QImage>
