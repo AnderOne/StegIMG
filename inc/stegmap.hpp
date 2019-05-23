@@ -18,8 +18,6 @@ public:
 	~StegMap();
 	bool open(QIODevice::OpenMode mode) override;
 	void close() override;
-	bool waitForBytesWritten(int msecs) override;
-	bool waitForReadyRead(int msecs) override;
 	qint64 bytesAvailable() const override;
 	qint64 bytesToWrite() const override;
 	bool isSequential() const override;

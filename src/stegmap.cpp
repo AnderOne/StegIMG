@@ -10,7 +10,9 @@ StegMap::StegMap(uint32_t *map, size_t num, std::string key):
 	StegMap::reset(key);
 }
 
-StegMap::~StegMap() { delete[] buffInd; }
+StegMap::~StegMap() {
+	delete[] buffInd;
+}
 
 qint64 StegMap::writeData(const char *data, qint64 maxSize) {
 
@@ -73,36 +75,24 @@ void StegMap::setNoise() {
 }
 
 bool StegMap::open(QIODevice::OpenMode mode) {
-	return QIODevice::open(mode) && StegMap::reset();
+	return QIODevice::open(mode | QIODevice::Unbuffered) &&
+	       StegMap::reset();
 }
 
-void StegMap::close() {
-	cur = 0;
-	QIODevice::close();
-}
-
-bool StegMap::waitForBytesWritten(int msecs) {
-	return QIODevice::waitForBytesWritten(msecs);
-}
-
-bool StegMap::waitForReadyRead(int msecs) {
-	return QIODevice::waitForReadyRead(msecs);
-}
+void StegMap::close() { cur = 0; QIODevice::close(); }
 
 qint64 StegMap::bytesAvailable() const {
-	return QIODevice::bytesAvailable();
+	return size() - pos() + QIODevice::bytesAvailable();
 }
 
 qint64 StegMap::bytesToWrite() const {
-	return QIODevice::bytesToWrite();
+	return size() - pos() + QIODevice::bytesToWrite();
 }
 
-bool StegMap::isSequential() const {
-	return false;
-}
+bool StegMap::isSequential() const { return false; }
 
 bool StegMap::canReadLine() const {
-	return !atEnd();
+	return !atEnd() || QIODevice::canReadLine();
 }
 
 bool StegMap::atEnd() const { return (cur > sizeInd - 4); }
@@ -112,14 +102,12 @@ qint64 StegMap::size() const { return sizeDat; }
 qint64 StegMap::pos() const { return cur / 4; }
 
 bool StegMap::seek(qint64 pos) {
-	QIODevice::seek(pos);
 	if (pos > sizeInd - 4) return false;
 	cur = pos * 4;
 	return true;
 }
 
 bool StegMap::reset() {
-	QIODevice::reset();
 	cur = 0;
 	return true;
 }
