@@ -28,7 +28,7 @@ public:
 	bool seek(qint64 pos) override;
 	bool reset() override;
 	virtual bool flush();
-private:
+protected:
 	QIODevice *dev;
 };
 

@@ -2,6 +2,7 @@
 #define __INCLUDE_STEGARCH_H
 
 #include <binstream.hpp>
+#include <rlestream.hpp>
 #include <stegmap.hpp>
 #include <QDataStream>
 #include <QImage>

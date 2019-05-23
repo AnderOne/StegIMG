@@ -29,6 +29,7 @@ HEADERS += \
     inc/stegmap.hpp \
     inc/stegarch.hpp \
     inc/binstream.hpp \
+    inc/rlestream.hpp \
     inc/imageview.hpp \
     inc/mainwindow.hpp
 
@@ -36,6 +37,7 @@ SOURCES += \
     src/stegmap.cpp \
     src/stegarch.cpp \
     src/binstream.cpp \
+    src/rlestream.cpp \
     src/imageview.cpp \
     src/mainwindow.cpp \
     src/main.cpp
