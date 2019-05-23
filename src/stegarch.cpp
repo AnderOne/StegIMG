@@ -50,7 +50,7 @@ bool StegArch::reset(const QImage &_img) {
 	map = new StegMap(
 		(QRgb *) img.bits(), img.byteCount() / 4
 	);
-	map->open(QIODevice::ReadWrite);
+	return map->open(QIODevice::ReadWrite);
 }
 
 StegArch::StegArch(const QImage &_img) {
