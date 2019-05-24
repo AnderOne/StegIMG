@@ -43,19 +43,22 @@ BinStream *StegArch::gener(CompressModeFlag _mod, OpenModeFlag _flg) {
 	return nullptr;
 }
 
-bool StegArch::encode(QDataStream &inp, CompressModeFlag mode) {
+bool StegArch::encode(QDataStream &inp, CompressModeFlag mod) {
 
 	if (!map) return false;
 
 	map->setNoise();	//Добавляем случайный шум к изображению!
 
 	//Записываем заголовок:
-	QDataStream str(map);
-	quint32 len = 0;
-	str << len;
+	QDataStream str(map); str << (quint8) mod;
+	quint32 len = 0, com = 0;
+	qint64 pos = map->pos();
+	str << len; if (mod != None) str << com;
+	qint64 top = map->pos();
+
 	//Записываем данные:
 	std::unique_ptr<BinStream> bin;
-	bin.reset(gener(mode, QIODevice::WriteOnly));
+	bin.reset(gener(mod, QIODevice::WriteOnly));
 	if (!bin) return false;
 	str.setDevice(bin.get());
 	char buf[BUF_SIZE];
@@ -70,24 +73,31 @@ bool StegArch::encode(QDataStream &inp, CompressModeFlag mode) {
 	if (!bin->flush()) {
 		return false;
 	}
-	str.setDevice(map);
+
 	//Обновляем заголовок:
-	map->reset();
+	com = map->pos() - top;
+	map->seek(pos);
+	str.setDevice(map);
 	str << len;
+	if (mod != None) {
+		str << com;
+	}
 	return true;
 }
 
-bool StegArch::decode(QDataStream &out, CompressModeFlag mode) {
+bool StegArch::decode(QDataStream &out) {
 
 	if (!map) return false;
 
 	//Считываем заголовок:
-	QDataStream str(map);
-	quint32 len = 0;
-	str >> len;
+	QDataStream str(map); quint8 tmp; str >> tmp;
+	CompressModeFlag mod = CompressModeFlag(tmp);
+	quint32 len = 0, com = 0;
+	str >> len; if (mod != None) str >> com;
+	
 	//Считываем данные:
 	std::unique_ptr<BinStream> bin;
-	bin.reset(gener(mode, QIODevice::ReadOnly));
+	bin.reset(gener(mod, QIODevice::ReadOnly));
 	if (!bin) return false;
 	str.setDevice(bin.get());
 	char buf[BUF_SIZE];

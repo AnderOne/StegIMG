@@ -18,7 +18,7 @@ public:
 	StegArch();
 
 	bool encode(QDataStream &_inp, CompressModeFlag _mod = None);
-	bool decode(QDataStream &_out, CompressModeFlag _mod = None);
+	bool decode(QDataStream &_out);
 
 	bool reset(const QImage &_img, std::string _key);
 	bool reset(const QImage &_img);
