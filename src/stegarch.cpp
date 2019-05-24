@@ -1,4 +1,5 @@
 #include "stegarch.hpp"
+#include <memory>
 
 StegArch::~StegArch() { delete map; }
 
@@ -28,7 +29,7 @@ bool StegArch::reset(std::string _key) {
 
 #define BUF_SIZE (quint32(1024))
 
-bool StegArch::encode(QDataStream &inp) {
+bool StegArch::encode(QDataStream &inp, CompressModeFlag mode) {
 
 	if (!map) return false;
 
@@ -39,8 +40,21 @@ bool StegArch::encode(QDataStream &inp) {
 	quint32 len = 0;
 	str << len;
 	//Записываем данные:
-	BinStream bin(map, QIODevice::WriteOnly);
-	str.setDevice(&bin);
+	std::unique_ptr<BinStream> bin;
+	switch (mode) {
+	case None:
+		bin.reset(new BinStream(map, QIODevice::WriteOnly));
+		break;
+	case RLE:
+		bin.reset(new RLEStream(map, QIODevice::WriteOnly));
+		break;
+	case LZW:
+		bin.reset(new LZWStream(map, QIODevice::WriteOnly));
+		break;
+	default:
+		return false;
+	}
+	str.setDevice(bin.get());
 	char buf[BUF_SIZE];
 	while (!inp.atEnd()) {
 		int n = inp.readRawData(buf, BUF_SIZE);
@@ -50,7 +64,7 @@ bool StegArch::encode(QDataStream &inp) {
 		}
 		len += n;
 	}
-	if (!bin.flush()) {
+	if (!bin->flush()) {
 		return false;
 	}
 	str.setDevice(map);
@@ -60,7 +74,7 @@ bool StegArch::encode(QDataStream &inp) {
 	return true;
 }
 
-bool StegArch::decode(QDataStream &out) {
+bool StegArch::decode(QDataStream &out, CompressModeFlag mode) {
 
 	if (!map) return false;
 
@@ -69,8 +83,21 @@ bool StegArch::decode(QDataStream &out) {
 	quint32 len = 0;
 	str >> len;
 	//Считываем данные:
-	BinStream bin(map, QIODevice::ReadOnly);
-	str.setDevice(&bin);
+	std::unique_ptr<BinStream> bin;
+	switch (mode) {
+	case None:
+		bin.reset(new BinStream(map, QIODevice::ReadOnly));
+		break;
+	case RLE:
+		bin.reset(new RLEStream(map, QIODevice::ReadOnly));
+		break;
+	case LZW:
+		bin.reset(new LZWStream(map, QIODevice::ReadOnly));
+		break;
+	default:
+		return false;
+	}
+	str.setDevice(bin.get());
 	char buf[BUF_SIZE];
 	while (true) {
 		size_t m = std::min(len, BUF_SIZE);
