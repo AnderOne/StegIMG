@@ -1,12 +1,39 @@
 #include "stegarch.hpp"
 
+StegArch::~StegArch() { delete map; }
+
+StegArch::StegArch(const QImage &_img, std::string _key) { reset(_img, _key); }
+
+StegArch::StegArch() {}
+
+bool StegArch::reset(const QImage &_img, std::string _key) {
+	key = _key; return reset(_img);
+}
+
+bool StegArch::reset(const QImage &_img) {
+	//Переводим в полноцветное 32-битное изображение:
+	img = _img.convertToFormat(QImage::Format::Format_ARGB32);
+	if (map) delete map;
+	map = new StegMap(
+		(QRgb *) img.bits(), img.byteCount() / 4, key
+	);
+	return map->open(QIODevice::ReadWrite);
+}
+
+bool StegArch::reset(std::string _key) {
+	if (!map) return false;
+	key = _key;
+	return map->reset(_key);
+}
+
 #define BUF_SIZE (quint32(1024))
 
-bool StegArch::encode(QDataStream &inp, std::string key) {
+bool StegArch::encode(QDataStream &inp) {
 
 	if (!map) return false;
+
 	map->setNoise();	//Добавляем случайный шум к изображению!
-	map->reset(key);
+
 	//Записываем заголовок:
 	QDataStream str(map);
 	quint32 len = 0;
@@ -33,10 +60,10 @@ bool StegArch::encode(QDataStream &inp, std::string key) {
 	return true;
 }
 
-bool StegArch::decode(QDataStream &out, std::string key) {
+bool StegArch::decode(QDataStream &out) {
 
 	if (!map) return false;
-	map->reset(key);
+
 	//Считываем заголовок:
 	QDataStream str(map);
 	quint32 len = 0;
@@ -53,24 +80,4 @@ bool StegArch::decode(QDataStream &out, std::string key) {
 		len -= n;
 	}
 	return !len;
-}
-
-bool StegArch::reset(const QImage &_img) {
-	//Переводим в полноцветное 32-битное изображение:
-	img = _img.convertToFormat(QImage::Format::Format_ARGB32);
-	if (map) delete map;
-	map = new StegMap(
-		(QRgb *) img.bits(), img.byteCount() / 4
-	);
-	return map->open(QIODevice::ReadWrite);
-}
-
-StegArch::StegArch(const QImage &_img) {
-	reset(_img);
-}
-
-StegArch::StegArch() {}
-
-StegArch::~StegArch() {
-	delete map;
 }

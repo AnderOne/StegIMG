@@ -54,9 +54,15 @@ void MainWindow::onEncryptClick() {
 		pass = "";
 	}
 
-	QFile file(fileName); file.open(QIODevice::ReadOnly);
+	if (!ar->reset(pass.toStdString())) {
+		QMessageBox::warning(this, "Error", "Failed to apply key!");
+		return;
+	}
+
+	QFile file(fileName);
+	file.open(QIODevice::ReadOnly);
 	QDataStream input(&file);
-	if (!ar->encode(input, pass.toStdString())) {
+	if (!ar->encode(input)) {
 		QMessageBox::warning(this, "Error", "Too long file!");
 		return;
 	}
@@ -96,10 +102,15 @@ void MainWindow::onDecryptClick() {
 	if (pass.isNull()) {
 		pass = "";
 	}
+	if (!ar->reset(pass.toStdString())) {
+		QMessageBox::warning(this, "Error", "Failed to apply key!");
+		return;
+	}
 
-	QFile file(fileName); file.open(QIODevice::WriteOnly);
+	QFile file(fileName);
+	file.open(QIODevice::WriteOnly);
 	QDataStream out(&file);
-	if (!ar->decode(out, pass.toStdString())) {
+	if (!ar->decode(out)) {
 		file.remove();
 		QMessageBox::warning(this, "Error", "Invalid data!");
 		return;

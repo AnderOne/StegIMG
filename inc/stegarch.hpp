@@ -9,17 +9,24 @@
 #include <QImage>
 
 class StegArch {
+
 public:
-	bool encode(QDataStream &inp, std::string key = "");
-	bool decode(QDataStream &out, std::string key = "");
+	virtual ~StegArch();
+	explicit StegArch(const QImage &_img, std::string _key = "");
+	StegArch();
+
+	bool encode(QDataStream &_inp);
+	bool decode(QDataStream &_out);
+
+	bool reset(const QImage &_img, std::string _key);
 	bool reset(const QImage &_img);
+	bool reset(std::string _key);
+
 	inline const StegMap *steg() const { return map; }
 	inline const QImage &image() const { return img; }
-	StegArch(const QImage &_img);
-	StegArch();
-	virtual ~StegArch();
+
 private:
-	QDataStream str;
+	std::string key;
 	StegMap *map = nullptr;
 	QImage img;
 };
