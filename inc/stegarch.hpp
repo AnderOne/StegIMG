@@ -24,6 +24,9 @@ public:
 	bool reset(const QImage &_img);
 	bool reset(std::string _key);
 
+	inline size_t capacity() const { return map->size(); }
+	inline size_t size() const { return vol; }
+
 	inline const StegMap *steg() const { return map; }
 	inline const QImage &image() const { return img; }
 
@@ -37,6 +40,7 @@ private:
 	std::string key;
 	StegMap *map = nullptr;
 	QImage img;
+	size_t vol = 0;
 };
 
 #endif //__INCLUDE_STEGARCH_H

@@ -23,6 +23,7 @@ private slots:
 	void onEncryptClick();
 	void onDecryptClick();
 private:
+	void resetStatus();
 	Ui::MainWindow *ui;
 	StegArch *ar = 0;
 };

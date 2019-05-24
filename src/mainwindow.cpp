@@ -25,9 +25,14 @@ void MainWindow::onInputImageClick() {
 	ui->buttonEncrypt->setEnabled(true);
 	ui->buttonDecrypt->setEnabled(true);
 
+	resetStatus();
+}
+
+void MainWindow::resetStatus() {
+
 	//Calculation of steganographic capacity:
 	uint32_t size;
-	QString info = QString::number(size = ar->steg()->size()) +
+	QString info = QString::number(size = ar->capacity()) +
 	             " bytes";
 	double mb = (double) size / (1024 * 1024);
 	double kb = (double) size / (1024);
@@ -41,6 +46,13 @@ void MainWindow::onInputImageClick() {
 	}
 	ui->inputImageInfo->setText(
 	"Capacity: " + info
+	);
+
+	//Change for hidden data size:
+	size_t vol = ar->size();
+	ui->hiddenDataSize->setEnabled(vol);
+	ui->hiddenDataSize->setValue(
+	100 * (double) vol / size
 	);
 }
 
@@ -72,6 +84,7 @@ void MainWindow::onEncryptClick() {
 		QMessageBox::warning(this, "Error", "Too long file!");
 		return;
 	}
+	resetStatus();
 
 	fileName = QFileDialog::getSaveFileUrl(
 		this, "Save File", QUrl(), "Image Files (*.png *.bmp)"

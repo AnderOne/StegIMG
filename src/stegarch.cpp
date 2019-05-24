@@ -18,12 +18,14 @@ bool StegArch::reset(const QImage &_img) {
 	map = new StegMap(
 		(QRgb *) img.bits(), img.byteCount() / 4, key
 	);
+	vol = 0;
 	return map->open(QIODevice::ReadWrite);
 }
 
 bool StegArch::reset(std::string _key) {
 	if (!map) return false;
 	key = _key;
+	vol = 0;
 	return map->reset(_key);
 }
 
@@ -73,6 +75,7 @@ bool StegArch::encode(QDataStream &inp, CompressModeFlag mod) {
 	if (!bin->flush()) {
 		return false;
 	}
+	vol = map->pos();
 
 	//Обновляем заголовок:
 	com = map->pos() - top;
