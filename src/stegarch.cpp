@@ -1,8 +1,6 @@
 #include "stegarch.hpp"
 
-#define BUFF_SIZE (1024)
-
-char buff[BUFF_SIZE];
+#define BUF_SIZE (quint32(1024))
 
 bool StegArch::encode(QDataStream &inp, std::string key) {
 
@@ -11,14 +9,15 @@ bool StegArch::encode(QDataStream &inp, std::string key) {
 	map->reset(key);
 	//Записываем заголовок:
 	QDataStream str(map);
-	uint32_t len = 0;
+	quint32 len = 0;
 	str << len;
 	//Записываем данные:
 	BinStream bin(map, QIODevice::WriteOnly);
 	str.setDevice(&bin);
+	char buf[BUF_SIZE];
 	while (!inp.atEnd()) {
-		int n = inp.readRawData(buff, BUFF_SIZE);
-		str.writeRawData(buff, n);
+		int n = inp.readRawData(buf, BUF_SIZE);
+		str.writeRawData(buf, n);
 		if (str.status() != QDataStream::Ok) {
 			return false;
 		}
@@ -40,16 +39,17 @@ bool StegArch::decode(QDataStream &out, std::string key) {
 	map->reset(key);
 	//Считываем заголовок:
 	QDataStream str(map);
-	uint32_t len = 0;
+	quint32 len = 0;
 	str >> len;
 	//Считываем данные:
 	BinStream bin(map, QIODevice::ReadOnly);
 	str.setDevice(&bin);
+	char buf[BUF_SIZE];
 	while (true) {
-		size_t m = std::min(len, (uint32_t) BUFF_SIZE);
-		int n = str.readRawData(buff, m);
+		size_t m = std::min(len, BUF_SIZE);
+		int n = str.readRawData(buf, m);
 		if (n <= 0) break;
-		out.writeRawData(buff, n);
+		out.writeRawData(buf, n);
 		len -= n;
 	}
 	return !len;
