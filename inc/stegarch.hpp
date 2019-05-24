@@ -17,6 +17,7 @@ public:
 	inline const QImage &image() const { return img; }
 	StegArch(const QImage &_img);
 	StegArch();
+	virtual ~StegArch();
 private:
 	QDataStream str;
 	StegMap *map = nullptr;

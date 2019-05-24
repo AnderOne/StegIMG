@@ -70,3 +70,7 @@ StegArch::StegArch(const QImage &_img) {
 }
 
 StegArch::StegArch() {}
+
+StegArch::~StegArch() {
+	delete map;
+}
