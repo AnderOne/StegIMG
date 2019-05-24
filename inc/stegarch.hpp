@@ -27,6 +27,12 @@ public:
 	inline const StegMap *steg() const { return map; }
 	inline const QImage &image() const { return img; }
 
+protected:
+	typedef QIODevice::OpenModeFlag OpenModeFlag;
+	BinStream *gener(
+	CompressModeFlag _mod, OpenModeFlag _flg
+	);
+
 private:
 	std::string key;
 	StegMap *map = nullptr;
