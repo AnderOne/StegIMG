@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QMainWindow>
 
+#include "encoderdialog.hpp"
 #include "stegarch.hpp"
 
 namespace Ui {

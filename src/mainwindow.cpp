@@ -11,7 +11,9 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 
 void MainWindow::onInputImageClick() {
 
-	QString fileName = QFileDialog::getOpenFileUrl(this, "Open BitMap", QUrl(), "Image Files (*.png *.bmp)").toLocalFile();
+	QString fileName = QFileDialog::getOpenFileUrl(
+		           this, "Open BitMap", QUrl(), "Image Files (*.png *.bmp)"
+		           ).toLocalFile();
 	if (fileName.isNull()) return;
 	QImage img;
 	if (!img.load(fileName)) {
@@ -25,14 +27,17 @@ void MainWindow::onInputImageClick() {
 
 	//Calculation of steganographic capacity:
 	uint32_t size;
-	QString info = QString::number(size = ar->steg()->size()) + " bytes";
+	QString info = QString::number(size = ar->steg()->size()) +
+	             " bytes";
 	double mb = (double) size / (1024 * 1024);
 	double kb = (double) size / (1024);
 	if (mb > 1.0)
-		info = QString::number(mb, 'f', 2) + " MB (" + info + ")";
+		info = QString::number(mb, 'f', 2) +
+		     " MB (" + info + ")";
 	else
 	if (kb > 1.0) {
-		info = QString::number(kb, 'f', 2) + " KB (" + info + ")";
+		info = QString::number(kb, 'f', 2) +
+		     " KB (" + info + ")";
 	}
 	ui->inputImageInfo->setText(
 	"Capacity: " + info
@@ -44,12 +49,13 @@ void MainWindow::onEncryptClick() {
 	QString fileName = QFileDialog::getOpenFileUrl(this, "Open File", QUrl()).toLocalFile();
 	if (fileName.isNull()) return;
 
-	bool flag = false;
-	QString pass = QInputDialog::getText(this, "Password", "", QLineEdit::Password, "", &flag);
-	if (!flag) {
+	EncoderDialog dialog(this);
+	if (!dialog.exec()) {
 		QMessageBox::information(this, "", "Operation was aborted!");
 		return;
 	}
+	StegArch::CompressModeFlag mode = dialog.getCompressMode();
+	QString pass = dialog.getPassword();
 	if (pass.isNull()) {
 		pass = "";
 	}
@@ -62,7 +68,7 @@ void MainWindow::onEncryptClick() {
 	QFile file(fileName);
 	file.open(QIODevice::ReadOnly);
 	QDataStream input(&file);
-	if (!ar->encode(input)) {
+	if (!ar->encode(input, mode)) {
 		QMessageBox::warning(this, "Error", "Too long file!");
 		return;
 	}
@@ -94,7 +100,9 @@ void MainWindow::onDecryptClick() {
 	if (fileName.isNull()) return;
 
 	bool flag = false;
-	QString pass = QInputDialog::getText(this, "Password", "", QLineEdit::Password, "", &flag);
+	QString pass = QInputDialog::getText(
+		       this, "Password", "", QLineEdit::Password, "", &flag
+		       );
 	if (!flag) {
 		QMessageBox::information(this, "", "Operation was aborted!");
 		return;
