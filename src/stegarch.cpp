@@ -40,10 +40,10 @@ bool StegArch::addItem(uint i, QDataStream &inp, CompressModeFlag mod) {
 	if (len > capacity()) return false;
 	ItemPointer it(new Item(capacity() - len, mod));
 	if (!it) return false;
-	item.emplace(item.begin() + i, it);
 	if (!it->read(inp)) {
 		return false;
 	}
+	item.emplace(item.begin() + i, it);
 	vol += sizeOfItemHeader() +
 	       it->size();
 	return true;
