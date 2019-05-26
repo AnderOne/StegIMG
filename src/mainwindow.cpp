@@ -12,9 +12,10 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 void MainWindow::onInputImageClick() {
 
 	QString fileName = QFileDialog::getOpenFileUrl(
-		           this, "Open BitMap", QUrl(), "Image Files (*.png *.bmp)"
-		           ).toLocalFile();
-	if (fileName.isNull()) return;
+	                   this, "Open BitMap", QUrl(), "Image Files (*.png *.bmp)").toLocalFile();
+	if (fileName.isNull()) {
+		return;
+	}
 	QImage img;
 	if (!img.load(fileName)) {
 		QMessageBox::warning(this, "Error", "Invalid image format!");
@@ -24,11 +25,122 @@ void MainWindow::onInputImageClick() {
 	ui->inputImageView->update((ar = new StegArch(img))->image());
 	ui->buttonEncrypt->setEnabled(true);
 	ui->buttonDecrypt->setEnabled(true);
+	ui->buttonAddItem->setEnabled(true);
 
 	resetStatus();
 }
 
+void MainWindow::onEncryptClick() {
+
+	bool flag = false;
+	QString pass = QInputDialog::getText(this, "Password", "", QLineEdit::Password, "", &flag);
+	if (!flag) {
+		QMessageBox::information(this, "", "Operation was aborted!");
+		return;
+	}
+	if (pass.isNull()) {
+		pass = "";
+	}
+	if (!ar->reset(pass.toStdString())) {
+		QMessageBox::warning(this, "Error", "Failed to apply key!");
+		return;
+	}
+	if (!ar->encode()) {
+		QMessageBox::warning(this, "Error", "Failed to encrypt!");
+		return;
+	}
+	resetStatus();
+
+	QString fileName = QFileDialog::getSaveFileUrl(
+		this, "Save File", QUrl(), "Image Files (*.png *.bmp)"
+	).toLocalFile();
+	if (fileName.isNull()) {
+		QMessageBox::information(
+		        this, "", "Operation was aborted!"
+		        );
+		return;
+	}
+	//Check for extension:
+	QString name = fileName.section('/', -1).toLower();
+	QString end = name.section('.', -1);
+	if (((end != "png") && (end != "bmp")) ||
+	     (end == name))
+	     fileName += "." + (end = "bmp");
+	ar->image().save(
+	fileName,
+	end.toStdString().c_str()
+	);
+}
+
+void MainWindow::onDecryptClick() {
+
+	bool flag = false;
+	QString pass = QInputDialog::getText(this, "Password", "", QLineEdit::Password, "", &flag);
+	if (!flag) {
+		QMessageBox::information(this, "", "Operation was aborted!");
+		return;
+	}
+	if (pass.isNull()) {
+		pass = "";
+	}
+	ar->clear();
+
+	if (!ar->reset(pass.toStdString())) {
+		QMessageBox::warning(this, "Error", "Failed to apply key!");
+		resetStatus();
+		return;
+	}
+	if (!ar->decode()) {
+		QMessageBox::warning(this, "Error", "Failed to decrypt!");
+		resetStatus();
+		return;
+	}
+	resetStatus();
+}
+
+void MainWindow::onAddClick() {
+
+	QString fileName = QFileDialog::getOpenFileUrl(this, "Open File", QUrl()).toLocalFile();
+	if (fileName.isNull()) return;
+
+	EncoderDialog dialog(this);
+	if (!dialog.exec()) {
+		QMessageBox::information(this, "", "Operation was aborted!");
+		return;
+	}
+	StegArch::CompressModeFlag mode = dialog.getCompressMode();
+
+	QFile file(fileName);
+	file.open(QIODevice::ReadOnly);
+	QDataStream input(&file);
+	if (!ar->addItem(input, mode)) {
+		QMessageBox::warning(this, "Error", "Too long file!");
+		return;
+	}
+	resetStatus();
+}
+
 void MainWindow::resetStatus() {
+
+	ui->hiddenDataSize->setEnabled(false); ui->inputImageInfo->setText("");
+	while (ui->tableWidget->rowCount()) ui->tableWidget->removeRow(0);
+	if (!ar) return;
+
+	const static QString METH[] = {"None", "RLE", "LZW"};
+
+	for (int i = 0; i < ar->numItems(); ++ i) {
+		auto it = ar->getItem(i);
+		ui->tableWidget->insertRow(i);
+		ui->tableWidget->setItem(
+		i, 0, new QTableWidgetItem("item-" + QString::number(i))
+		);
+		ui->tableWidget->setItem(
+		i, 1, new QTableWidgetItem(QString::number(it->size()))
+		);
+		ui->tableWidget->setItem(
+		i, 2, new QTableWidgetItem(METH[it->compressMode()])
+		);
+	}
 
 	//Calculation of steganographic capacity:
 	uint32_t size;
@@ -54,89 +166,6 @@ void MainWindow::resetStatus() {
 	ui->hiddenDataSize->setValue(
 	100 * (double) vol / size
 	);
-}
-
-void MainWindow::onEncryptClick() {
-
-	QString fileName = QFileDialog::getOpenFileUrl(this, "Open File", QUrl()).toLocalFile();
-	if (fileName.isNull()) return;
-
-	EncoderDialog dialog(this);
-	if (!dialog.exec()) {
-		QMessageBox::information(this, "", "Operation was aborted!");
-		return;
-	}
-	StegArch::CompressModeFlag mode = dialog.getCompressMode();
-	QString pass = dialog.getPassword();
-	if (pass.isNull()) {
-		pass = "";
-	}
-
-	if (!ar->reset(pass.toStdString())) {
-		QMessageBox::warning(this, "Error", "Failed to apply key!");
-		return;
-	}
-
-	QFile file(fileName);
-	file.open(QIODevice::ReadOnly);
-	QDataStream input(&file);
-	if (!ar->encode(input, mode)) {
-		QMessageBox::warning(this, "Error", "Too long file!");
-		return;
-	}
-	resetStatus();
-
-	fileName = QFileDialog::getSaveFileUrl(
-		this, "Save File", QUrl(), "Image Files (*.png *.bmp)"
-	).toLocalFile();
-	if (fileName.isNull()) {
-		QMessageBox::information(
-		this, "", "Operation was aborted!"
-		);
-		return;
-	}
-	//Check for extension:
-	QString name = fileName.section('/', -1).toLower();
-	QString end = name.section('.', -1);
-	if (((end != "png") && (end != "bmp")) ||
-	     (end == name))
-	     fileName += "." + (end = "bmp");
-	ar->image().save(
-	fileName,
-	end.toStdString().c_str()
-	);
-}
-
-void MainWindow::onDecryptClick() {
-
-	QString fileName = QFileDialog::getSaveFileUrl(this, "Save File", QUrl()).toLocalFile();
-	if (fileName.isNull()) return;
-
-	bool flag = false;
-	QString pass = QInputDialog::getText(
-		       this, "Password", "", QLineEdit::Password, "", &flag
-		       );
-	if (!flag) {
-		QMessageBox::information(this, "", "Operation was aborted!");
-		return;
-	}
-	if (pass.isNull()) {
-		pass = "";
-	}
-	if (!ar->reset(pass.toStdString())) {
-		QMessageBox::warning(this, "Error", "Failed to apply key!");
-		return;
-	}
-
-	QFile file(fileName);
-	file.open(QIODevice::WriteOnly);
-	QDataStream out(&file);
-	if (!ar->decode(out)) {
-		file.remove();
-		QMessageBox::warning(this, "Error", "Invalid data!");
-		return;
-	}
-	file.close();
 }
 
 MainWindow::~MainWindow() {

@@ -3,6 +3,7 @@
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
+#include <QTableWidget>
 #include <QMessageBox>
 #include <QMainWindow>
 
@@ -22,6 +23,7 @@ private slots:
 	void onInputImageClick();
 	void onEncryptClick();
 	void onDecryptClick();
+	void onAddClick();
 private:
 	void resetStatus();
 	Ui::MainWindow *ui;
