@@ -5,7 +5,9 @@
 #include <rlestream.hpp>
 #include <lzwstream.hpp>
 #include <stegmap.hpp>
+#include <memory>
 #include <QDataStream>
+#include <QBuffer>
 #include <QImage>
 
 class StegArch {
@@ -13,30 +15,70 @@ class StegArch {
 public:
 	enum CompressModeFlag { None = 0, RLE = 1, LZW = 2 };
 
+	struct Item {
+		explicit Item(quint32 maxSize, CompressModeFlag mod);
+		inline CompressModeFlag compressMode() const { return mod; }
+		inline quint32 capacity() const { return vol; }
+		inline quint32 size() const { return dat.size(); }
+		inline char *data() { return dat.data(); }
+		bool write(QDataStream &out) const;
+		bool read(QDataStream &inp);
+	private:
+		typedef QIODevice::OpenModeFlag OpenModeFlag;
+		BinStream *gener(QBuffer *, OpenModeFlag);
+		CompressModeFlag mod;
+		QByteArray dat;
+		quint32 vol;
+	};
+
+	typedef std::shared_ptr<Item> ItemPointer;
+
 	virtual ~StegArch();
-	explicit StegArch(const QImage &_img, std::string _key = "");
+	explicit StegArch(const QImage &img, std::string key = "");
 	StegArch();
 
-	bool encode(QDataStream &_inp, CompressModeFlag _mod = None);
-	bool decode(QDataStream &_out);
+	bool reset(const QImage &img, std::string key);
+	bool reset(const QImage &img);
+	bool reset(std::string key);
 
-	bool reset(const QImage &_img, std::string _key);
-	bool reset(const QImage &_img);
-	bool reset(std::string _key);
+	ItemPointer getItem(uint i);
+	inline quint32 numItems() const { return item.size(); }
+	bool addItem(uint i, QDataStream &inp, CompressModeFlag mod);
+	bool addItem(QDataStream &inp, CompressModeFlag mod);
+	void delItem(uint i);
 
-	inline size_t capacity() const { return map->size(); }
-	inline size_t size() const { return vol; }
+	bool encode();
+	bool decode();
+	void clear();
 
-	inline const StegMap *steg() const { return map; }
-	inline const QImage &image() const { return img; }
-
-protected:
-	typedef QIODevice::OpenModeFlag OpenModeFlag;
-	BinStream *gener(
-	CompressModeFlag _mod, OpenModeFlag _flg
-	);
+	constexpr static quint32 sizeOfItemHeader() {
+		return sizeof(quint32) + 1;
+	}
+	constexpr static quint32 sizeOfHeader() {
+		return sizeof(quint32);
+	}
+	inline const StegMap *steg() const {
+		return map;
+	}
+	inline const QImage &image() const {
+		return img;
+	}
+	inline quint32 capacity() const {
+		return map->size();
+	}
+	inline quint32 size() const {
+		return vol;
+	}
 
 private:
+	bool check(quint32 len) {
+		return sizeOfItemHeader() +
+		       sizeOfHeader() +
+		       vol + len <=
+		       capacity();
+	}
+
+	std::vector<ItemPointer> item;
 	std::string key;
 	StegMap *map = nullptr;
 	QImage img;

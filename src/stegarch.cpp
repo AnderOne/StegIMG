@@ -1,9 +1,10 @@
 #include "stegarch.hpp"
-#include <memory>
 
 StegArch::~StegArch() { delete map; }
 
-StegArch::StegArch(const QImage &_img, std::string _key) { reset(_img, _key); }
+StegArch::StegArch(const QImage &_img, std::string _key): StegArch() {
+	reset(_img, _key);
+}
 
 StegArch::StegArch() {}
 
@@ -12,8 +13,8 @@ bool StegArch::reset(const QImage &_img, std::string _key) {
 }
 
 bool StegArch::reset(const QImage &_img) {
-	//Переводим в полноцветное 32-битное изображение:
-	img = _img.convertToFormat(QImage::Format::Format_ARGB32);
+	item.clear();
+	img = _img.convertToFormat(QImage::Format_ARGB32);
 	if (map) delete map;
 	map = new StegMap(
 		(QRgb *) img.bits(), img.byteCount() / 4, key
@@ -25,91 +26,173 @@ bool StegArch::reset(const QImage &_img) {
 bool StegArch::reset(std::string _key) {
 	if (!map) return false;
 	key = _key;
-	vol = 0;
 	return map->reset(_key);
 }
 
-#define BUF_SIZE (quint32(1024))
+StegArch::ItemPointer StegArch::getItem(uint i) {
+	if (i >= item.size())
+		return nullptr;
+	return item[i];
+}
 
-BinStream *StegArch::gener(CompressModeFlag _mod, OpenModeFlag _flg) {
+bool StegArch::addItem(uint i, QDataStream &inp, CompressModeFlag mod) {
+	quint32 len = sizeOfItemHeader() + sizeOfHeader() + vol;
+	if (len > capacity()) return false;
+	ItemPointer it(new Item(capacity() - len, mod));
+	if (!it) return false;
+	item.emplace(item.begin() + i, it);
+	if (!it->read(inp)) {
+		return false;
+	}
+	vol += sizeOfItemHeader() +
+	       it->size();
+	return true;
+}
 
-	switch (_mod) {
+bool StegArch::addItem(QDataStream &inp, CompressModeFlag mod) {
+	return addItem(
+	item.size(), inp, mod
+	);
+}
+
+void StegArch::delItem(uint i) {
+	if (i >= item.size())
+		return;
+	item.erase(
+	item.begin() + i
+	);
+}
+
+BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) {
+
+	switch (mod) {
 	case None:
-		return new BinStream(map, _flg);
+		return new BinStream(buf, flg);
 	case RLE:
-		return new RLEStream(map, _flg);
+		return new RLEStream(buf, flg);
 	case LZW:
-		return new LZWStream(map, _flg);
+		return new LZWStream(buf, flg);
 	}
 
 	return nullptr;
 }
 
-bool StegArch::encode(QDataStream &inp, CompressModeFlag mod) {
+StegArch::Item::Item(quint32 _maxSize, CompressModeFlag _mod):
+	vol(_maxSize), mod(_mod) {
+	dat.resize(vol);
+}
+
+#define BUFSIZE (1024)
+
+bool StegArch::Item::write(QDataStream &out) const {
+
+	constexpr QDataStream::Status err =
+	          QDataStream::WriteFailed;
+	constexpr OpenModeFlag flg =
+	          QIODevice::ReadOnly;
+
+	std::unique_ptr<BinStream> bin;
+	QBuffer dev(&dat);
+	dev.open(flg);
+
+	bin.reset(gener(&dev, flg)); if (!bin) return false;
+
+	char buf[BUFSIZE];
+
+	while (!bin->atEnd()) {
+		int n = bin->read(buf, BUFSIZE);
+		if (n < 0) return false;
+		out.writeRawData(buf, n);
+		if (out.status() == err) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool StegArch::Item::read(QDataStream &inp) {
+
+	constexpr QDataStream::Status err =
+	          QDataStream::ReadCorruptData;
+	constexpr OpenModeFlag flg =
+	          QIODevice::WriteOnly;
+
+	std::unique_ptr<BinStream> bin;
+	QBuffer dev(&dat);
+	dev.open(flg);
+	dat.resize(0);
+
+	bin.reset(gener(&dev, flg)); if (!bin) return false;
+
+	char buf[BUFSIZE];
+
+	for (int len = capacity(); len && !inp.atEnd(); ) {
+		int n = std::min(len, BUFSIZE);
+		n = inp.readRawData(buf, n);
+		if (inp.status() == err) {
+			return false;
+		}
+		if (bin->write(buf, n) != n) {
+			return false;
+		}
+		len -= n;
+	}
+	if (!bin->flush()) {
+		return false;
+	}
+	return true;
+}
+
+bool StegArch::encode() {
 
 	if (!map) return false;
 
 	map->setNoise();	//Добавляем случайный шум к изображению!
 
-	//Записываем заголовок:
-	QDataStream str(map); str << (quint8) mod;
-	quint32 len = 0, com = 0;
-	qint64 pos = map->pos();
-	str << len; if (mod != None) str << com;
-	qint64 top = map->pos();
+	quint32 num = numItems(); QDataStream str(map); str << num;
 
-	//Записываем данные:
-	std::unique_ptr<BinStream> bin;
-	bin.reset(gener(mod, QIODevice::WriteOnly));
-	if (!bin) return false;
-	str.setDevice(bin.get());
-	char buf[BUF_SIZE];
-	while (!inp.atEnd()) {
-		int n = inp.readRawData(buf, BUF_SIZE);
-		str.writeRawData(buf, n);
-		if (str.status() != QDataStream::Ok) {
+	for (auto &it: item) {
+		quint8 mod = it->compressMode(); num = it->size();
+		str << num; str << mod;
+		if (str.writeRawData(it->data(), num) != num) {
 			return false;
 		}
-		len += n;
 	}
-	if (!bin->flush()) {
+	if (str.status() == QDataStream::WriteFailed) {
 		return false;
-	}
-	vol = map->pos();
-
-	//Обновляем заголовок:
-	com = map->pos() - top;
-	map->seek(pos);
-	str.setDevice(map);
-	str << len;
-	if (mod != None) {
-		str << com;
 	}
 	return true;
 }
 
-bool StegArch::decode(QDataStream &out) {
+bool StegArch::decode() {
 
 	if (!map) return false;
 
-	//Считываем заголовок:
-	QDataStream str(map); quint8 tmp; str >> tmp;
-	CompressModeFlag mod = CompressModeFlag(tmp);
-	quint32 len = 0, com = 0;
-	str >> len; if (mod != None) str >> com;
-	
-	//Считываем данные:
-	std::unique_ptr<BinStream> bin;
-	bin.reset(gener(mod, QIODevice::ReadOnly));
-	if (!bin) return false;
-	str.setDevice(bin.get());
-	char buf[BUF_SIZE];
-	while (true) {
-		size_t m = std::min(len, BUF_SIZE);
-		int n = str.readRawData(buf, m);
-		if (n <= 0) break;
-		out.writeRawData(buf, n);
-		len -= n;
+	std::vector<ItemPointer> temp; item.clear(); vol = 0;
+	QDataStream str(map); map->reset();
+	quint32 num; str >> num;
+
+	for (int i = 0; i < num; ++ i) {
+		quint32 len; str >> len;
+		quint8 mod; str >> mod;
+		if (!check(len)) return false;
+		ItemPointer it(
+		    new Item(len, mod)
+		);
+		temp.push_back(it);
+		if (str.readRawData(it->data(), len) != len) {
+		    return false;
+		}
+		vol += sizeOfItemHeader() + len;
 	}
-	return !len;
+	if (str.status() ==
+	    QDataStream::ReadCorruptData) {
+	    return false;
+	}
+	item = std::move(temp);
+	return true;
+}
+
+void StegArch::clear() {
+	item.clear();
 }
