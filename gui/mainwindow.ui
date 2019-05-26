@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>597</width>
+    <width>604</width>
     <height>409</height>
    </rect>
   </property>
@@ -220,7 +220,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>597</width>
+     <width>604</width>
      <height>30</height>
     </rect>
    </property>
@@ -260,7 +260,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>532</x>
-     <y>-21</y>
+     <y>0</y>
     </hint>
    </hints>
   </connection>
@@ -272,11 +272,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>175</x>
-     <y>393</y>
+     <y>377</y>
     </hint>
     <hint type="destinationlabel">
      <x>246</x>
-     <y>-96</y>
+     <y>0</y>
     </hint>
    </hints>
   </connection>
@@ -287,12 +287,12 @@
    <slot>onDecryptClick()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>238</x>
-     <y>379</y>
+     <x>259</x>
+     <y>377</y>
     </hint>
     <hint type="destinationlabel">
      <x>295</x>
-     <y>-82</y>
+     <y>0</y>
     </hint>
    </hints>
   </connection>
@@ -303,12 +303,44 @@
    <slot>onAddClick()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>302</x>
-     <y>381</y>
+     <x>343</x>
+     <y>377</y>
     </hint>
     <hint type="destinationlabel">
      <x>424</x>
-     <y>436</y>
+     <y>408</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tableWidget</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onSelect()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>426</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>602</x>
+     <y>313</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonDelItem</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onDelClick()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>402</x>
+     <y>359</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>617</x>
+     <y>259</y>
     </hint>
    </hints>
   </connection>
@@ -318,5 +350,7 @@
   <slot>onEncryptClick()</slot>
   <slot>onDecryptClick()</slot>
   <slot>onAddClick()</slot>
+  <slot>onDelClick()</slot>
+  <slot>onSelect()</slot>
  </slots>
 </ui>

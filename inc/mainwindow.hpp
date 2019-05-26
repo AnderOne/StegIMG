@@ -24,6 +24,8 @@ private slots:
 	void onEncryptClick();
 	void onDecryptClick();
 	void onAddClick();
+	void onDelClick();
+	void onSelect();
 private:
 	void resetStatus();
 	Ui::MainWindow *ui;

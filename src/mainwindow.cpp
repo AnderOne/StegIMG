@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QColor>
 #include <iostream>
+#include <set>
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) { ui->setupUi(this); }
 
@@ -118,6 +119,19 @@ void MainWindow::onAddClick() {
 		return;
 	}
 	resetStatus();
+}
+
+void MainWindow::onDelClick() {
+	std::set<int> ind;
+	for (auto it: ui->tableWidget->selectedItems()) ind.insert(it->row());
+	for (auto i: ind) {
+		ar->delItem(i);
+	}
+	resetStatus();
+}
+
+void MainWindow::onSelect() {
+	ui->buttonDelItem->setEnabled(!ui->tableWidget->selectedItems().empty());
 }
 
 void MainWindow::resetStatus() {

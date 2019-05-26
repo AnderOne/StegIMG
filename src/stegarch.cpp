@@ -50,14 +50,13 @@ bool StegArch::addItem(uint i, QDataStream &inp, CompressModeFlag mod) {
 }
 
 bool StegArch::addItem(QDataStream &inp, CompressModeFlag mod) {
-	return addItem(
-	item.size(), inp, mod
-	);
+	return addItem(item.size(), inp, mod);
 }
 
 void StegArch::delItem(uint i) {
-	if (i >= item.size())
-		return;
+	if (i >= item.size()) return;
+	vol -= sizeOfItemHeader() +
+	       getItem(i)->size();
 	item.erase(
 	item.begin() + i
 	);
