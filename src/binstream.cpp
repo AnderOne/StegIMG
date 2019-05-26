@@ -26,13 +26,21 @@ void BinStream::close() {
 	QIODevice::close();
 }
 
-qint64 BinStream::bytesAvailable() const { return QIODevice::bytesAvailable(); }
+qint64 BinStream::bytesAvailable() const {
+	return QIODevice::bytesAvailable();
+}
 
-qint64 BinStream::bytesToWrite() const { return QIODevice::bytesToWrite(); }
+qint64 BinStream::bytesToWrite() const {
+	return QIODevice::bytesToWrite();
+}
 
-bool BinStream::isSequential() const { return true; }
+bool BinStream::isSequential() const {
+	return true;
+}
 
-bool BinStream::canReadLine() const { return false; }
+bool BinStream::canReadLine() const {
+	return false; 
+}
 
 qint64 BinStream::writeData(const char *data, qint64 maxSize) {
 
@@ -55,9 +63,13 @@ qint64 BinStream::readData(char *data, qint64 maxSize) {
 
 bool BinStream::flush() { return true; }
 
-qint64 BinStream::size() const { return bytesAvailable(); }
+qint64 BinStream::size() const {
+	return bytesAvailable();
+}
 
-qint64 BinStream::pos() const { return 0; }
+qint64 BinStream::pos() const {
+	return 0;
+}
 
 bool BinStream::atEnd() const {
 	return dev->atEnd();

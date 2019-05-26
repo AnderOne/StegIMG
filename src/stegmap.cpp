@@ -5,7 +5,7 @@
 #include <ctime>
 
 StegMap::StegMap(uint32_t *map, size_t num, std::string key):
-         QIODevice(), buffMap(map), buffInd(nullptr), sizeMap(num), sizeInd(num * 2), sizeDat(num / 2), cur(0) {
+	QIODevice(), buffMap(map), buffInd(nullptr), sizeMap(num), sizeInd(num * 2), sizeDat(num / 2), cur(0) {
 	buffInd = new qint32[sizeInd];
 	StegMap::reset(key);
 }
@@ -53,17 +53,17 @@ int StegMap::get() {
 
 bool StegMap::reset(std::string key) {
 
-	static const int MAGIC = ((1 << 17) - 1);	//NOTE: Magic prime number!
+	static const quint32 MAGIC = ((1 << 17) - 1);	//NOTE: Magic prime number!
 
 	//We use only R and B components:
 	for (int i = 0; i < sizeMap; ++ i) buffInd[2 * i + 1] = (buffInd[2 * i] = 4 * i) + 2;
 	if (isOpen() && !StegMap::reset()) return false;
 
 	if (!key.size()) return true;
-	int h = 0;
-	for (int i = 0; i < key.size(); ++ i) h = std::abs(h + (uint8_t) key[i]) % MAGIC;
+	quint32 h = 0;
+	for (int i = 0; i < key.size(); ++ i) h = (h + quint8(key[i])) % MAGIC;
 	for (int i = 0; i < sizeInd; ++ i) {
-		h = std::abs(h * (uint8_t) key[i % key.size()] + MAGIC) % sizeInd;
+		h = (h * quint8(key[i % key.size()]) + MAGIC) % sizeInd;
 		std::swap(buffInd[h], buffInd[i]);
 	}
 	return true;
@@ -95,7 +95,9 @@ bool StegMap::canReadLine() const {
 	return !atEnd() || QIODevice::canReadLine();
 }
 
-bool StegMap::atEnd() const { return (cur > sizeInd - 4); }
+bool StegMap::atEnd() const {
+	return (cur > sizeInd - 4);
+}
 
 qint64 StegMap::size() const { return sizeDat; }
 

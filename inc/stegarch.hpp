@@ -13,8 +13,6 @@
 class StegArch {
 
 public:
-	enum CompressModeFlag { None = 0, RLE = 1, LZW = 2 };
-
 	struct Buffer: public QBuffer {
 		template <typename ... T> Buffer(size_t max, T ... arg):
 		       QBuffer(arg ...),
@@ -24,12 +22,18 @@ public:
 		size_t maxSize;
 	};
 
+	enum CompressModeFlag {
+		None = 0,
+		RLE = 1,
+		LZW = 2
+	};
+
 	struct Item {
 		explicit Item(quint32 maxSize, CompressModeFlag mod);
-		inline CompressModeFlag compressMode() const { return mod; }
-		inline quint32 capacity() const { return vol; }
-		inline quint32 size() const { return dat.size(); }
-		inline char *data() { return dat.data(); }
+		CompressModeFlag compressMode() const { return mod; }
+		quint32 capacity() const { return vol; }
+		quint32 size() const { return dat.size(); }
+		char *data() { return dat.data(); }
 		bool write(QDataStream &out) const;
 		bool read(QDataStream &inp);
 	private:
@@ -51,7 +55,7 @@ public:
 	bool reset(std::string key);
 
 	ItemPointer getItem(uint i);
-	inline quint32 numItems() const { return item.size(); }
+	quint32 numItems() const { return item.size(); }
 	bool addItem(uint i, QDataStream &inp, CompressModeFlag mod);
 	bool addItem(QDataStream &inp, CompressModeFlag mod);
 	void delItem(uint i);
@@ -66,16 +70,16 @@ public:
 	constexpr static quint32 sizeOfHeader() {
 		return sizeof(quint32);
 	}
-	inline const StegMap *steg() const {
+	const StegMap *steg() const {
 		return map;
 	}
-	inline const QImage &image() const {
+	const QImage &image() const {
 		return img;
 	}
-	inline quint32 capacity() const {
+	quint32 capacity() const {
 		return map->size();
 	}
-	inline quint32 size() const {
+	quint32 size() const {
 		return vol;
 	}
 

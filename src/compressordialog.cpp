@@ -2,7 +2,7 @@
 #include "compressordialog.hpp"
 
 CompressorDialog::CompressorDialog(QWidget *parent):
-    QDialog(parent), ui(new Ui::CompressorDialog) {
+	QDialog(parent), ui(new Ui::CompressorDialog) {
 	mode = CompressModeFlag::None;
 	ui->setupUi(this);
 }
