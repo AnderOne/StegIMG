@@ -62,6 +62,12 @@ void StegArch::delItem(uint i) {
 	);
 }
 
+qint64 StegArch::Buffer::writeData(const char *dat, qint64 len) {
+
+	return (buffer().size() + len <= maxSize)?
+	        QBuffer::writeData(dat, len): -1;
+}
+
 BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) {
 
 	switch (mod) {
@@ -91,16 +97,17 @@ bool StegArch::Item::write(QDataStream &out) const {
 	          QIODevice::ReadOnly;
 
 	std::unique_ptr<BinStream> bin;
-	QBuffer dev(&dat);
-	dev.open(flg);
+	StegArch::Buffer dev(dat.size(), &dat); dev.open(flg);
 
 	bin.reset(gener(&dev, flg)); if (!bin) return false;
 
 	char buf[BUFSIZE];
 
 	while (!bin->atEnd()) {
-		int n = bin->read(buf, BUFSIZE);
-		if (n < 0) return false;
+		int n;
+		if ((n = bin->read(buf, BUFSIZE)) < 0) {
+			return false;
+		}
 		out.writeRawData(buf, n);
 		if (out.status() == err) {
 			return false;
@@ -117,24 +124,21 @@ bool StegArch::Item::read(QDataStream &inp) {
 	          QIODevice::WriteOnly;
 
 	std::unique_ptr<BinStream> bin;
-	QBuffer dev(&dat);
-	dev.open(flg);
+	StegArch::Buffer dev(capacity(), &dat); dev.open(flg);
 	dat.resize(0);
 
 	bin.reset(gener(&dev, flg)); if (!bin) return false;
 
 	char buf[BUFSIZE];
 
-	for (int len = capacity(); len && !inp.atEnd(); ) {
-		int n = std::min(len, BUFSIZE);
-		n = inp.readRawData(buf, n);
+	while (!inp.atEnd()) {
+		int n = inp.readRawData(buf, BUFSIZE);
 		if (inp.status() == err) {
 			return false;
 		}
 		if (bin->write(buf, n) != n) {
 			return false;
 		}
-		len -= n;
 	}
 	if (!bin->flush()) {
 		return false;

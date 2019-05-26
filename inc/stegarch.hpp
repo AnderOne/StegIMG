@@ -15,6 +15,15 @@ class StegArch {
 public:
 	enum CompressModeFlag { None = 0, RLE = 1, LZW = 2 };
 
+	struct Buffer: public QBuffer {
+		template <typename ... T> Buffer(size_t max, T ... arg):
+		       QBuffer(arg ...),
+		       maxSize(max) {}
+		qint64 writeData(const char *dat, qint64 len) override;
+	private:
+		size_t maxSize;
+	};
+
 	struct Item {
 		explicit Item(quint32 maxSize, CompressModeFlag mod);
 		inline CompressModeFlag compressMode() const { return mod; }
