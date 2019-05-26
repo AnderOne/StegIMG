@@ -4,8 +4,8 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <iostream>
 #include <QColor>
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) { ui->setupUi(this); }
 
@@ -103,7 +103,7 @@ void MainWindow::onAddClick() {
 	QString fileName = QFileDialog::getOpenFileUrl(this, "Open File", QUrl()).toLocalFile();
 	if (fileName.isNull()) return;
 
-	EncoderDialog dialog(this);
+	CompressorDialog dialog(this);
 	if (!dialog.exec()) {
 		QMessageBox::information(this, "", "Operation was aborted!");
 		return;

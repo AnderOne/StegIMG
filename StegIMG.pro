@@ -34,7 +34,7 @@ HEADERS += \
     inc/rlestream.hpp \
     inc/lzwstream.hpp \
     inc/imageview.hpp \
-    inc/encoderdialog.hpp \
+    inc/compressordialog.hpp \
     inc/mainwindow.hpp
 
 SOURCES += \
@@ -44,10 +44,10 @@ SOURCES += \
     src/rlestream.cpp \
     src/lzwstream.cpp \
     src/imageview.cpp \
-    src/encoderdialog.cpp \
+    src/compressordialog.cpp \
     src/mainwindow.cpp \
     src/main.cpp
 
 FORMS += \
-    gui/encoderdialog.ui \
+    gui/compressordialog.ui \
     gui/mainwindow.ui
