@@ -167,32 +167,22 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="buttonGetItem">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Get</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="buttonDelItem">
           <property name="enabled">
            <bool>false</bool>
           </property>
           <property name="text">
            <string>Del</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="buttonUpItem">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Up</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="buttonDownItem">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Down</string>
           </property>
          </widget>
         </item>
@@ -242,9 +232,8 @@
   <tabstop>buttonEncrypt</tabstop>
   <tabstop>buttonDecrypt</tabstop>
   <tabstop>buttonAddItem</tabstop>
+  <tabstop>buttonGetItem</tabstop>
   <tabstop>buttonDelItem</tabstop>
-  <tabstop>buttonUpItem</tabstop>
-  <tabstop>buttonDownItem</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -313,6 +302,38 @@
    </hints>
   </connection>
   <connection>
+   <sender>buttonGetItem</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onGetClick()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>394</x>
+     <y>364</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>613</x>
+     <y>43</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonDelItem</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onDelClick()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>469</x>
+     <y>360</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>617</x>
+     <y>259</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
    <sender>tableWidget</sender>
    <signal>itemSelectionChanged()</signal>
    <receiver>MainWindow</receiver>
@@ -328,28 +349,13 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>buttonDelItem</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onDelClick()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>402</x>
-     <y>359</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>617</x>
-     <y>259</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <slots>
   <slot>onInputImageClick()</slot>
   <slot>onEncryptClick()</slot>
   <slot>onDecryptClick()</slot>
   <slot>onAddClick()</slot>
+  <slot>onGetClick()</slot>
   <slot>onDelClick()</slot>
   <slot>onSelect()</slot>
  </slots>

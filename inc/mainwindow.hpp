@@ -24,6 +24,7 @@ private slots:
 	void onEncryptClick();
 	void onDecryptClick();
 	void onAddClick();
+	void onGetClick();
 	void onDelClick();
 	void onSelect();
 private:

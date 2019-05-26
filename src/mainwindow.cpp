@@ -109,16 +109,37 @@ void MainWindow::onAddClick() {
 		QMessageBox::information(this, "", "Operation was aborted!");
 		return;
 	}
-	StegArch::CompressModeFlag mode = dialog.getCompressMode();
+	StegArch::CompressModeFlag mod = dialog.getCompressMode();
 
-	QFile file(fileName);
-	file.open(QIODevice::ReadOnly);
-	QDataStream input(&file);
-	if (!ar->addItem(input, mode)) {
+	QFile file(fileName); file.open(QIODevice::ReadOnly);
+	QDataStream inp(&file);
+	if (!ar->addItem(inp, mod)) {
 		QMessageBox::warning(this, "Error", "Too long file!");
 		return;
 	}
 	resetStatus();
+}
+
+void MainWindow::onGetClick() {
+
+	std::set<int> ind; for (auto it: ui->tableWidget->selectedItems()) ind.insert(it->row());
+	if (ind.size() != 1) {
+		return;
+	}
+	QString fileName = QFileDialog::getSaveFileUrl(this, "Save File", QUrl()).toLocalFile();
+	if (fileName.isNull()) {
+		return;
+	}
+	QFile file(fileName); file.open(QIODevice::WriteOnly);
+	QDataStream out(&file);
+	auto it = ar->getItem(*ind.begin());
+	if (!it->write(out)) {
+		QMessageBox::warning(
+		this, "Error",
+		"File save failed!"
+		);
+		return;
+	}
 }
 
 void MainWindow::onDelClick() {
@@ -131,7 +152,11 @@ void MainWindow::onDelClick() {
 }
 
 void MainWindow::onSelect() {
-	ui->buttonDelItem->setEnabled(!ui->tableWidget->selectedItems().empty());
+	bool fl = !ui->tableWidget->selectedItems().empty();
+	ui->buttonGetItem->
+	    setEnabled(fl);
+	ui->buttonDelItem->
+	    setEnabled(fl);
 }
 
 void MainWindow::resetStatus() {
