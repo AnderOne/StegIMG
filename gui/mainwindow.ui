@@ -6,24 +6,95 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>401</width>
-    <height>421</height>
+    <width>597</width>
+    <height>409</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
      <layout class="QVBoxLayout" name="verticalLayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetMaximumSize</enum>
-      </property>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="ImageView" name="inputImageView"/>
+         <widget class="QSplitter" name="splitter">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="childrenCollapsible">
+           <bool>false</bool>
+          </property>
+          <widget class="QWidget" name="horizontalLayoutWidget">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="ImageView" name="inputImageView">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>256</width>
+                <height>240</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QTableWidget" name="tableWidget">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>320</width>
+             <height>240</height>
+            </size>
+           </property>
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+           <attribute name="horizontalHeaderCascadingSectionResizes">
+            <bool>false</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string>name</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>size</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>compress</string>
+            </property>
+           </column>
+          </widget>
+         </widget>
         </item>
        </layout>
       </item>
@@ -39,13 +110,25 @@
       </item>
       <item>
        <widget class="QLabel" name="inputImageInfo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QHBoxLayout" name="horizontalLayout_1">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item>
          <widget class="QPushButton" name="buttonImage">
           <property name="text">
@@ -74,6 +157,46 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="buttonAddItem">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Add</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonDelItem">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Del</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonUpItem">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Up</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonDownItem">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Down</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -97,7 +220,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>401</width>
+     <width>597</width>
      <height>30</height>
     </rect>
    </property>
@@ -112,6 +235,17 @@
    <header location="global">imageview.hpp</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>inputImageView</tabstop>
+  <tabstop>tableWidget</tabstop>
+  <tabstop>buttonImage</tabstop>
+  <tabstop>buttonEncrypt</tabstop>
+  <tabstop>buttonDecrypt</tabstop>
+  <tabstop>buttonAddItem</tabstop>
+  <tabstop>buttonDelItem</tabstop>
+  <tabstop>buttonUpItem</tabstop>
+  <tabstop>buttonDownItem</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -137,8 +271,8 @@
    <slot>onEncryptClick()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>181</x>
-     <y>389</y>
+     <x>175</x>
+     <y>393</y>
     </hint>
     <hint type="destinationlabel">
      <x>246</x>
@@ -162,10 +296,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>buttonAddItem</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onAddClick()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>302</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>424</x>
+     <y>436</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>onInputImageClick()</slot>
   <slot>onEncryptClick()</slot>
   <slot>onDecryptClick()</slot>
+  <slot>onAddClick()</slot>
  </slots>
 </ui>
