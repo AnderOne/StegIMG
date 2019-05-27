@@ -38,7 +38,8 @@ public:
 		bool read(QDataStream &inp);
 	private:
 		typedef QIODevice::OpenModeFlag OpenModeFlag;
-		BinStream *gener(QBuffer *, OpenModeFlag);
+		BinStream *gener(
+		    QBuffer *, OpenModeFlag) const;
 		CompressModeFlag mod;
 		QByteArray dat;
 		quint32 vol;

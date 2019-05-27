@@ -80,7 +80,7 @@ qint64 StegArch::Buffer::writeData(const char *dat, qint64 len) {
 	return QBuffer::writeData(dat, len);
 }
 
-BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) {
+BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) const {
 
 	switch (mod) {
 	case None:
