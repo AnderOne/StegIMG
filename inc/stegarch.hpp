@@ -84,12 +84,7 @@ public:
 	}
 
 private:
-	bool check(quint32 len) {
-		return sizeOfItemHeader() +
-		       sizeOfHeader() +
-		       vol + len <=
-		       capacity();
-	}
+	ItemPointer newItem(quint32 len, CompressModeFlag mod);
 
 	std::vector<ItemPointer> item;
 	std::string key;

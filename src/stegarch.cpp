@@ -29,6 +29,16 @@ bool StegArch::reset(std::string _key) {
 	return map->reset(_key);
 }
 
+StegArch::ItemPointer StegArch::newItem(quint32 len, CompressModeFlag mod) {
+
+	if (sizeOfItemHeader() +
+	    sizeOfHeader() +
+	    vol + len <=
+	    capacity()) return ItemPointer(new Item(len, mod));
+
+	return nullptr;
+}
+
 StegArch::ItemPointer StegArch::getItem(uint i) {
 	if (i >= item.size())
 		return nullptr;
@@ -64,8 +74,10 @@ void StegArch::delItem(uint i) {
 
 qint64 StegArch::Buffer::writeData(const char *dat, qint64 len) {
 
-	return (buffer().size() + len <= maxSize)?
-	        QBuffer::writeData(dat, len): -1;
+	if (buffer().size() + len > maxSize) {
+		return -1;
+	}
+	return QBuffer::writeData(dat, len);
 }
 
 BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) {
@@ -173,26 +185,27 @@ bool StegArch::decode() {
 
 	std::vector<ItemPointer> temp; item.clear(); vol = 0;
 	QDataStream str(map); map->reset();
+	quint32 v = 0;
 	quint32 num; str >> num;
 
 	for (int i = 0; i < num; ++ i) {
-		quint32 len; str >> len;
-		quint8 mod; str >> mod;
-		if (!check(len)) return false;
-		ItemPointer it(
-		    new Item(len, mod)
-		);
+		quint32 len; str >> len; quint8 mod; str >> mod;
+		vol = v;
+		auto it = newItem(len, mod);
+		vol = 0;
+		if (!it) return false;
 		temp.push_back(it);
 		if (str.readRawData(it->data(), len) != len) {
 		    return false;
 		}
-		vol += sizeOfItemHeader() + len;
+		v += sizeOfItemHeader() + len;
 	}
 	if (str.status() ==
 	    QDataStream::ReadCorruptData) {
 	    return false;
 	}
 	item = std::move(temp);
+	vol = v;
 	return true;
 }
 
