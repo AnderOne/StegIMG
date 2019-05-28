@@ -168,7 +168,7 @@ bool StegArch::encode() {
 
 	for (auto &it: item) {
 		quint8 mod = it->compressMode(); num = it->size();
-		str << num; str << mod;
+		str << mod << num;
 		if (str.writeRawData(it->data(), num) != num) {
 			return false;
 		}
@@ -189,7 +189,7 @@ bool StegArch::decode() {
 	quint32 num; str >> num;
 
 	for (int i = 0; i < num; ++ i) {
-		quint32 len; str >> len; quint8 mod; str >> mod;
+		quint8 mod; str >> mod; quint32 len; str >> len;
 		vol = v;
 		auto it = newItem("TEST!", mod, len);
 		vol = 0;
