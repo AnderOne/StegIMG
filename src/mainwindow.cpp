@@ -113,7 +113,7 @@ void MainWindow::onAddClick() {
 
 	QFile file(fileName); file.open(QIODevice::ReadOnly);
 	QDataStream inp(&file);
-	if (!ar->addItem(inp, mod)) {
+	if (!ar->addItem("TEST!", mod, inp)) {
 		QMessageBox::warning(this, "Error", "Too long file!");
 		return;
 	}
@@ -171,7 +171,7 @@ void MainWindow::resetStatus() {
 		auto it = ar->getItem(i);
 		ui->tableWidget->insertRow(i);
 		ui->tableWidget->setItem(
-		i, 0, new QTableWidgetItem("item-" + QString::number(i))
+		i, 0, new QTableWidgetItem(QString(it->name().c_str()))
 		);
 		ui->tableWidget->setItem(
 		i, 1, new QTableWidgetItem(QString::number(it->size()))

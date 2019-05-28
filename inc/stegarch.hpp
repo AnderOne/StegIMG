@@ -29,7 +29,8 @@ public:
 	};
 
 	struct Item {
-		explicit Item(quint32 maxSize, CompressModeFlag mod);
+		explicit Item(std::string key, CompressModeFlag mod, quint32 vol);
+		std::string name() const { return key; }
 		CompressModeFlag compressMode() const { return mod; }
 		quint32 capacity() const { return vol; }
 		quint32 size() const { return dat.size(); }
@@ -40,9 +41,10 @@ public:
 		typedef QIODevice::OpenModeFlag OpenModeFlag;
 		BinStream *gener(
 		    QBuffer *, OpenModeFlag) const;
+		std::string key;
 		CompressModeFlag mod;
-		QByteArray dat;
 		quint32 vol;
+		QByteArray dat;
 	};
 
 	typedef std::shared_ptr<Item> ItemPointer;
@@ -57,8 +59,12 @@ public:
 
 	ItemPointer getItem(uint i);
 	quint32 numItems() const { return item.size(); }
-	bool addItem(uint i, QDataStream &inp, CompressModeFlag mod);
-	bool addItem(QDataStream &inp, CompressModeFlag mod);
+	bool addItem(
+	        uint i, std::string key, CompressModeFlag mod,
+	        QDataStream &inp);
+	bool addItem(
+	        std::string key, CompressModeFlag mod,
+	        QDataStream &inp);
 	void delItem(uint i);
 
 	bool encode();
@@ -85,7 +91,10 @@ public:
 	}
 
 private:
-	ItemPointer newItem(quint32 len, CompressModeFlag mod);
+	ItemPointer newItem(
+	    std::string key, CompressModeFlag mod,
+	    quint32 vol
+	    );
 
 	std::vector<ItemPointer> item;
 	std::string key;
