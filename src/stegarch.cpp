@@ -33,6 +33,7 @@ StegArch::ItemPointer StegArch::newItem(std::string key, CompressModeFlag mod, q
 
 	if (sizeOfItemHeader() +
 	    sizeOfHeader() +
+	    key.size() + 1 +
 	    size() + vol <=
 	    capacity()) return ItemPointer(new Item(key, mod, vol));
 
@@ -46,7 +47,7 @@ StegArch::ItemPointer StegArch::getItem(uint i) {
 }
 
 bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStream &inp) {
-	quint32 len = sizeOfItemHeader() + sizeOfHeader() + vol;
+	quint32 len = sizeOfItemHeader() + sizeOfHeader() + key.size() + 1 + vol;
 	if (len > capacity()) return false;
 	ItemPointer it(new Item(key, mod, capacity() - len));
 	if (!it) return false;
@@ -55,6 +56,7 @@ bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStrea
 	}
 	item.emplace(item.begin() + i, it);
 	vol += sizeOfItemHeader() +
+	       key.size() + 1 +
 	       it->size();
 	return true;
 }
@@ -65,8 +67,9 @@ bool StegArch::addItem(std::string key, CompressModeFlag mod, QDataStream &inp) 
 
 void StegArch::delItem(uint i) {
 	if (i >= item.size()) return;
-	vol -= sizeOfItemHeader() +
-	       getItem(i)->size();
+	vol -= item[i]->name().size() + 1 +
+	       item[i]->size() +
+	       sizeOfItemHeader();
 	item.erase(
 	item.begin() + i
 	);
@@ -204,7 +207,9 @@ bool StegArch::decode() {
 		if (str.readRawData(it->data(), len) != len) {
 		    return false;
 		}
-		v += sizeOfItemHeader() + len;
+		v += sizeOfItemHeader() +
+		     it->name().size() +
+		     it->size() + 1;
 	}
 	if (str.status() ==
 	    QDataStream::ReadCorruptData) {
