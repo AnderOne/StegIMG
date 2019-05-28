@@ -167,6 +167,9 @@ bool StegArch::encode() {
 	quint32 num = numItems(); QDataStream str(map); str << num;
 
 	for (auto &it: item) {
+		quint8 len = it->name().size(); str << len;
+		char *s = it->name().c_str();
+		str.writeRawData(s, len);
 		quint8 mod = it->compressMode(); num = it->size();
 		str << mod << num;
 		if (str.writeRawData(it->data(), num) != num) {
@@ -189,9 +192,12 @@ bool StegArch::decode() {
 	quint32 num; str >> num;
 
 	for (int i = 0; i < num; ++ i) {
-		quint8 mod; str >> mod; quint32 len; str >> len;
+		quint8 n; str >> n; char buf[n];
+		if (str.readRawData(buf, n) != n) return false;
+		std::string s(buf, n);
+		quint8 m; str >> m; quint32 len; str >> len;
 		vol = v;
-		auto it = newItem("TEST!", mod, len);
+		auto it = newItem(s, m, len);
 		vol = 0;
 		if (!it) return false;
 		temp.push_back(it);
