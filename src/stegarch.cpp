@@ -55,9 +55,7 @@ bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStrea
 		return false;
 	}
 	item.emplace(item.begin() + i, it);
-	vol += sizeOfItemHeader() +
-	       key.size() + 1 +
-	       it->size();
+	vol += it->size();
 	return true;
 }
 
@@ -67,9 +65,7 @@ bool StegArch::addItem(std::string key, CompressModeFlag mod, QDataStream &inp) 
 
 void StegArch::delItem(uint i) {
 	if (i >= item.size()) return;
-	vol -= item[i]->name().size() + 1 +
-	       item[i]->size() +
-	       sizeOfItemHeader();
+	vol -= item[i]->size();
 	item.erase(
 	item.begin() + i
 	);
@@ -173,7 +169,8 @@ bool StegArch::encode() {
 		quint8 len = it->name().size(); str << len;
 		char *s = it->name().c_str();
 		str.writeRawData(s, len);
-		quint8 mod = it->compressMode(); num = it->size();
+		quint8 mod = it->compressMode();
+		num = it->sizeData();
 		str << mod << num;
 		if (str.writeRawData(it->data(), num) != num) {
 			return false;
@@ -207,9 +204,7 @@ bool StegArch::decode() {
 		if (str.readRawData(it->data(), len) != len) {
 		    return false;
 		}
-		v += sizeOfItemHeader() +
-		     it->name().size() +
-		     it->size() + 1;
+		v += it->size();
 	}
 	if (str.status() ==
 	    QDataStream::ReadCorruptData) {

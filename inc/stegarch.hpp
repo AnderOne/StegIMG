@@ -29,14 +29,26 @@ public:
 	};
 
 	struct Item {
-		explicit Item(std::string key, CompressModeFlag mod, quint32 vol);
+		Item(std::string key, CompressModeFlag mod, quint32 vol);
+		bool write(QDataStream &out) const;
+		bool read(QDataStream &inp);
 		std::string name() const { return key; }
 		CompressModeFlag compressMode() const { return mod; }
 		quint32 capacity() const { return vol; }
-		quint32 size() const { return dat.size(); }
-		char *data() { return dat.data(); }
-		bool write(QDataStream &out) const;
-		bool read(QDataStream &inp);
+		quint32 sizeHead() const {
+			return sizeof(quint32) +
+			       sizeof(quint8) + key.size() +
+			       sizeof(quint8);
+		}
+		quint32 sizeData() const {
+			return dat.size();
+		}
+		quint32 size() const {
+			return sizeHead() + sizeData();
+		}
+		char *data() {
+			return dat.data();
+		}
 	private:
 		typedef QIODevice::OpenModeFlag OpenModeFlag;
 		BinStream *gener(
@@ -58,7 +70,9 @@ public:
 	bool reset(std::string key);
 
 	ItemPointer getItem(uint i);
-	quint32 numItems() const { return item.size(); }
+	quint32 numItems() const {
+		return item.size();
+	}
 	bool addItem(
 	        uint i, std::string key, CompressModeFlag mod,
 	        QDataStream &inp);
