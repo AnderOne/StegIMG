@@ -29,37 +29,53 @@ public:
 	};
 
 	struct Item {
-		Item(std::string key, CompressModeFlag mod, quint32 vol);
+
+		struct Head {
+			Head(std::string _key, CompressModeFlag _mod, quint32 _vol): key(_key), mod(_mod), vol(_vol) {}
+			CompressModeFlag compressMode() const { return mod; }
+			std::string name() const { return key; }
+			quint32 capacity() const { return vol; }
+			quint32 size() const {
+				return sizeof(quint32) +
+				       sizeof(quint8) + key.size() +
+				       sizeof(quint8);
+			}
+		private:
+			friend struct Item;
+			CompressModeFlag mod;
+			std::string key;
+			quint32 vol;
+		};
+
+		Item(std::string key, CompressModeFlag mod, quint32 vol): inf{key, mod, vol} { dat.resize(vol); }
+
+		CompressModeFlag compressMode() const { return inf.compressMode(); }
+		quint32 capacity() const { return inf.capacity(); }
+		std::string name() const { return inf.name(); }
+
+		quint32 sizeHead() const { return inf.size(); }
+		quint32 sizeData() const { return dat.size(); }
+		quint32 size() const { return sizeHead() + sizeData(); }
+
+		const Head &head() const { return inf; }
+		const char *data() const { return dat.data(); }
+		char *data() { return dat.data(); }
+
 		bool write(QDataStream &out) const;
 		bool read(QDataStream &inp);
-		std::string name() const { return key; }
-		CompressModeFlag compressMode() const { return mod; }
-		quint32 capacity() const { return vol; }
-		quint32 sizeHead() const {
-			return sizeof(quint32) +
-			       sizeof(quint8) + key.size() +
-			       sizeof(quint8);
-		}
-		quint32 sizeData() const {
-			return dat.size();
-		}
-		quint32 size() const {
-			return sizeHead() + sizeData();
-		}
-		char *data() {
-			return dat.data();
-		}
 	private:
-		typedef QIODevice::OpenModeFlag OpenModeFlag;
+		typedef QIODevice::OpenModeFlag
+		OpenModeFlag;
+
 		BinStream *gener(
-		    QBuffer *, OpenModeFlag) const;
-		std::string key;
-		CompressModeFlag mod;
-		quint32 vol;
+		    QBuffer *, OpenModeFlag
+		    ) const;
+		Item::Head inf;
 		QByteArray dat;
 	};
 
-	typedef std::shared_ptr<Item> ItemPointer;
+	typedef std::shared_ptr<Item>
+	ItemPointer;
 
 	virtual ~StegArch();
 	explicit StegArch(const QImage &img, std::string key = "");
@@ -85,10 +101,7 @@ public:
 	bool decode();
 	void clear();
 
-	constexpr static quint32 sizeOfItemHeader() {
-		return sizeof(quint32) + 1;
-	}
-	constexpr static quint32 sizeOfHeader() {
+	constexpr static quint32 sizeHead() {
 		return sizeof(quint32);
 	}
 	const StegMap *steg() const {

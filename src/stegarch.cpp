@@ -31,10 +31,9 @@ bool StegArch::reset(std::string _key) {
 
 StegArch::ItemPointer StegArch::newItem(std::string key, CompressModeFlag mod, quint32 vol) {
 
-	if (sizeOfItemHeader() +
-	    sizeOfHeader() +
-	    key.size() + 1 +
-	    size() + vol <=
+	Item::Head head(key, mod, vol);
+	if (sizeHead() + size() +
+	    head.size() + vol <=
 	    capacity()) return ItemPointer(new Item(key, mod, vol));
 
 	return nullptr;
@@ -47,7 +46,8 @@ StegArch::ItemPointer StegArch::getItem(uint i) {
 }
 
 bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStream &inp) {
-	quint32 len = sizeOfItemHeader() + sizeOfHeader() + key.size() + 1 + vol;
+	Item::Head head(key, mod, 0);
+	quint32 len = sizeHead() + size() + head.size();
 	if (len > capacity()) return false;
 	ItemPointer it(new Item(key, mod, capacity() - len));
 	if (!it) return false;
@@ -81,7 +81,7 @@ qint64 StegArch::Buffer::writeData(const char *dat, qint64 len) {
 
 BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) const {
 
-	switch (mod) {
+	switch (compressMode()) {
 	case None:
 		return new BinStream(buf, flg);
 	case RLE:
@@ -91,11 +91,6 @@ BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) const {
 	}
 
 	return nullptr;
-}
-
-StegArch::Item::Item(std::string _key, CompressModeFlag _mod, quint32 _vol):
-	key(_key), mod(_mod), vol(_vol) {
-	dat.resize(vol);
 }
 
 #define BUFSIZE (1024)
