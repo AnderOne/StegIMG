@@ -110,10 +110,11 @@ void MainWindow::onAddClick() {
 		return;
 	}
 	StegArch::CompressModeFlag mod = dialog.getCompressMode();
+	std::string key = dialog.getItemName();
 
 	QFile file(fileName); file.open(QIODevice::ReadOnly);
 	QDataStream inp(&file);
-	if (!ar->addItem("TEST!", mod, inp)) {
+	if (!ar->addItem(key, mod, inp)) {
 		QMessageBox::warning(this, "Error", "Too long file!");
 		return;
 	}
