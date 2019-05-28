@@ -14,6 +14,10 @@ CompressorDialog::getCompressMode() const {
 	return mode;
 }
 
+std::string CompressorDialog::getItemName() const {
+	return ui->lineEdit->text().toStdString();
+}
+
 void CompressorDialog::onNone_Click() {
 	mode = CompressModeFlag::None;
 }

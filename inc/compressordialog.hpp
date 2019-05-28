@@ -15,6 +15,7 @@ public:
 	explicit CompressorDialog(QWidget *parent = 0);
 	~CompressorDialog();
 	CompressModeFlag getCompressMode() const;
+	std::string getItemName() const;
 private slots:
 	void onNone_Click();
 	void onRLE_Click();
