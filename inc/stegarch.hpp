@@ -74,8 +74,7 @@ public:
 		bool read(QDataStream &inp);
 
 	private:
-		typedef QIODevice::OpenModeFlag
-		OpenModeFlag;
+		typedef QIODevice::OpenModeFlag OpenModeFlag;
 
 		BinStream *gener(
 		    QBuffer *, OpenModeFlag
@@ -84,8 +83,7 @@ public:
 		QByteArray dat;
 	};
 
-	typedef std::shared_ptr<Item>
-	ItemPointer;
+	typedef std::shared_ptr<Item> ItemHand;
 
 	virtual ~StegArch();
 	explicit StegArch(const QImage &img, std::string key = "");
@@ -95,7 +93,7 @@ public:
 	bool reset(const QImage &img);
 	bool reset(std::string key);
 
-	ItemPointer getItem(uint i);
+	ItemHand getItem(uint i);
 	quint32 numItems() const {
 		return item.size();
 	}
@@ -128,9 +126,9 @@ public:
 	}
 
 private:
-	ItemPointer newItem(const Item::Head &head);
+	ItemHand newItem(const Item::Head &head);
 
-	std::vector<ItemPointer> item;
+	std::vector<ItemHand> item;
 	std::string key;
 	StegMap *map = nullptr;
 	QImage img;

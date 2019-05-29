@@ -32,7 +32,7 @@ bool StegArch::reset(std::string _key) {
 bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStream &inp) {
 	Item::Head head(key, mod, 0); quint32 len = sizeHead() + size() + head.size();
 	if (len > capacity()) return false;
-	ItemPointer it(new Item(key, mod, capacity() - len));
+	ItemHand it(new Item(key, mod, capacity() - len));
 	if (!it) return false;
 	if (!it->read(inp)) {
 		return false;
@@ -46,15 +46,15 @@ bool StegArch::addItem(std::string key, CompressModeFlag mod, QDataStream &inp) 
 	return addItem(item.size(), key, mod, inp);
 }
 
-StegArch::ItemPointer StegArch::newItem(const StegArch::Item::Head &head) {
+StegArch::ItemHand StegArch::newItem(const StegArch::Item::Head &head) {
 
 	if (sizeHead() + size() + head.size() + head.capacity() <= capacity()) {
-		return ItemPointer(new Item(head));
+		return ItemHand(new Item(head));
 	}
 	return nullptr;
 }
 
-StegArch::ItemPointer StegArch::getItem(uint i) {
+StegArch::ItemHand StegArch::getItem(uint i) {
 	if (i >= item.size())
 		return nullptr;
 	return item[i];
@@ -210,7 +210,7 @@ bool StegArch::decode() {
 
 	if (!map) return false;
 
-	std::vector<ItemPointer> temp; item.clear(); vol = 0;
+	std::vector<ItemHand> temp; item.clear(); vol = 0;
 	QDataStream str(map); map->reset();
 	quint32 v = 0;
 	quint32 num; str >> num;
@@ -218,7 +218,7 @@ bool StegArch::decode() {
 	for (int i = 0; i < num; ++ i) {
 		Item::Head h; if (!h.read(str)) return false;
 		vol = v;
-		ItemPointer it = newItem(h);
+		ItemHand it = newItem(h);
 		vol = 0;
 		if (!it) return false;
 		temp.push_back(it);
