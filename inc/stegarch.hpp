@@ -29,16 +29,21 @@ public:
 	};
 
 	struct Item {
+
 		CompressModeFlag compressMode() const { return mod; }
 		std::string name() const { return key; }
 		const char *data() const { return dat.data(); }
 		char *data() { return dat.data(); }
 
+		const StegArch *arch() const { return &own; }
+
 		quint32 sizeHead() const {
 			return sizeof(quint32) + sizeof(quint8) +
 			       key.size() + sizeof(quint8);
 		}
-		quint32 sizeData() const { return dat.size(); }
+		quint32 sizeData() const {
+			return dat.size();
+		}
 		quint32 size() const {
 			return sizeHead() + sizeData();
 		}
