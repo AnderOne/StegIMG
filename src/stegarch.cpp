@@ -2,11 +2,10 @@
 
 StegArch::~StegArch() { delete map; }
 
-StegArch::StegArch(const QImage &_img, std::string _key): StegArch() {
+StegArch::StegArch(const QImage &_img, std::string _key) {
 	reset(_img, _key);
+	dict[nullptr] = item.end();
 }
-
-StegArch::StegArch() {}
 
 bool StegArch::reset(const QImage &_img, std::string _key) {
 	key = _key;
@@ -19,7 +18,7 @@ bool StegArch::reset(const QImage &_img) {
 	img = _img.convertToFormat(QImage::Format_ARGB32);
 	if (map) delete map;
 	map = new StegMap(
-		(QRgb *) img.bits(), img.byteCount() / 4, key
+	(QRgb *) img.bits(), img.byteCount() / 4, key
 	);
 	vol = 0;
 	return map->open(QIODevice::ReadWrite);
@@ -31,49 +30,50 @@ bool StegArch::reset(std::string _key) {
 	return map->reset(_key);
 }
 
-bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStream &inp) {
+bool StegArch::insertItem(const Const_ItemHand &pos, std::string key, CompressModeFlag mod, QDataStream &inp) {
 
-	ItemHand it(new Item(*this, key, mod));
-	if (!it) return false;
+	ItemHand itr(new Item(*this, key, mod));
+	if (!itr) return false;
 	quint32 len = sizeHead() + size() +
-	        it->sizeHead();
+	        itr->sizeHead();
 	if (len > capacity() ||
-	    !it->read(inp)) {
+	    !itr->read(inp)) {
 		return false;
 	}
-	item.emplace(item.begin() + i, it);
-	vol += it->size();
+	dict[itr.get()] = item.insert(
+	dict[pos.get()], itr
+	);
+	vol += itr->size();
 	return true;
 }
 
-bool StegArch::addItem(std::string key, CompressModeFlag mod, QDataStream &inp) {
-	return addItem(item.size(), key, mod, inp);
+bool StegArch::insertItem(std::string key, CompressModeFlag mod, QDataStream &inp) {
+	return insertItem(nullptr, key, mod, inp);
 }
 
-bool StegArch::addItem(uint i, QDataStream &inp) {
+bool StegArch::insertItem(const Const_ItemHand &pos, QDataStream &inp) {
 
-	ItemHand it(new Item(*this));
-	if (!it || !it->readHead(inp) ||
-	    !it->readData(inp)) {
+	ItemHand itr(new Item(*this));
+	if (!itr || !itr->readHead(inp) ||
+	    !itr->readData(inp)) {
 		return false;
 	}
-	item.emplace(
-	item.begin() + i, it
+	dict[itr.get()] = item.insert(
+	dict[pos.get()], itr
 	);
-	vol += it->size();
+	vol += itr->size();
 	return true;
 }
 
-bool StegArch::addItem(QDataStream &inp) {
-	return addItem(item.size(), inp);
+bool StegArch::insertItem(QDataStream &inp) {
+	return insertItem(nullptr, inp);
 }
 
-void StegArch::delItem(uint i) {
-	if (i >= item.size()) return;
-	vol -= item[i]->size();
-	item.erase(
-	item.begin() + i
-	);
+void StegArch::removeItem(const Const_ItemHand &itr) {
+	if (itr == nullptr) return;
+	item.erase(dict[itr.get()]);
+	dict.erase(itr.get());
+	vol -= itr->size();
 }
 
 BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) const {
@@ -142,10 +142,8 @@ bool StegArch::Item::readHead(QDataStream &inp) {
 
 bool StegArch::Item::write(QDataStream &out) const {
 
-	constexpr QDataStream::Status err =
-	          QDataStream::WriteFailed;
-	constexpr OpenModeFlag flg =
-	          QIODevice::ReadOnly;
+	constexpr QDataStream::Status err = QDataStream::WriteFailed;
+	constexpr OpenModeFlag flg = QIODevice::ReadOnly;
 
 	std::unique_ptr<BinStream> bin;
 	StegArch::Buffer dev(dat.size(), &dat); dev.open(flg);
@@ -169,10 +167,8 @@ bool StegArch::Item::write(QDataStream &out) const {
 
 bool StegArch::Item::read(QDataStream &inp) {
 
-	constexpr QDataStream::Status err =
-	          QDataStream::ReadCorruptData;
-	constexpr OpenModeFlag flg =
-	          QIODevice::WriteOnly;
+	constexpr QDataStream::Status err = QDataStream::ReadCorruptData;
+	constexpr OpenModeFlag flg = QIODevice::WriteOnly;
 
 	std::unique_ptr<BinStream> bin;
 	quint32 len = own.capacity() - (
@@ -206,7 +202,7 @@ bool StegArch::encode() {
 
 	map->setNoise();	//Добавляем случайный шум к изображению!
 
-	quint32 num = numItems(); QDataStream str(map); str << num;
+	quint32 num = item.size(); QDataStream str(map); str << num;
 
 	for (auto &it: item) {
 	    if (!it->writeHead(str) || !it->writeData(str)) {
@@ -228,8 +224,7 @@ bool StegArch::decode() {
 	str >> num;
 	clear();
 	for (int i = 0; i < num; ++ i) {
-	    if (!addItem(str)) { clear(); return false; }
-	    auto it = item.back();
+	    if (!insertItem(str)) { clear(); return false; }
 	}
 	if (str.status() ==
 	    QDataStream::ReadCorruptData) {

@@ -79,32 +79,28 @@ public:
 
 	virtual ~StegArch();
 	explicit StegArch(const QImage &img, std::string key = "");
-	StegArch();
 
 	bool reset(const QImage &img, std::string key);
 	bool reset(const QImage &img);
 	bool reset(std::string key);
 
-	Const_ItemHand getItem(uint i) const {
-		if (i >= item.size())
-			return nullptr;
-		return item[i];
+	const std::list<Const_ItemHand> &items() const {
+		return item;
 	}
-	quint32 numItems() const {
-		return item.size();
-	}
-	bool addItem(
-	        uint i, std::string key, CompressModeFlag mod,
-	        QDataStream &inp);
-	bool addItem(
-	        std::string key, CompressModeFlag mod,
-	        QDataStream &inp);
-	bool addItem(
-	        uint i,
-	        QDataStream &inp);
-	bool addItem(
-	        QDataStream &inp);
-	void delItem(uint i);
+
+	void removeItem(const Const_ItemHand &itr);
+
+	bool insertItem(const Const_ItemHand &pos, std::string key,
+	                CompressModeFlag mod,
+	                QDataStream &inp);
+
+	bool insertItem(const Const_ItemHand &pos,
+	                QDataStream &inp);
+
+	bool insertItem(std::string  key, CompressModeFlag mod,
+	                QDataStream &inp);
+
+	bool insertItem(QDataStream &inp);
 
 	bool encode();
 	bool decode();
@@ -127,9 +123,12 @@ public:
 	}
 
 private:
-	std::vector<ItemHand> item;
+	std::list<Const_ItemHand> item;
+	std::map<const Item *,
+	     std::list<Const_ItemHand>
+	     ::iterator> dict;
 	std::string key;
-	StegMap *map = nullptr;
+	StegMap *map = 0;
 	QImage img;
 	size_t vol = 0;
 };
