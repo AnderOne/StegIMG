@@ -9,7 +9,9 @@ StegArch::StegArch(const QImage &_img, std::string _key): StegArch() {
 StegArch::StegArch() {}
 
 bool StegArch::reset(const QImage &_img, std::string _key) {
-	key = _key; return reset(_img);
+	key = _key;
+	return
+	reset(_img);
 }
 
 bool StegArch::reset(const QImage &_img) {
@@ -30,11 +32,13 @@ bool StegArch::reset(std::string _key) {
 }
 
 bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStream &inp) {
-	Item::Head head(key, mod, 0); quint32 len = sizeHead() + size() + head.size();
-	if (len > capacity()) return false;
-	ItemHand it(new Item(key, mod, capacity() - len));
+
+	ItemHand it(new Item(*this, key, mod));
 	if (!it) return false;
-	if (!it->read(inp)) {
+	quint32 len = sizeHead() + size() +
+	        it->sizeHead();
+	if (len > capacity() ||
+	    !it->read(inp)) {
 		return false;
 	}
 	item.emplace(item.begin() + i, it);
@@ -46,12 +50,22 @@ bool StegArch::addItem(std::string key, CompressModeFlag mod, QDataStream &inp) 
 	return addItem(item.size(), key, mod, inp);
 }
 
-StegArch::ItemHand StegArch::newItem(const StegArch::Item::Head &head) {
+bool StegArch::addItem(uint i, QDataStream &inp) {
 
-	if (sizeHead() + size() + head.size() + head.capacity() <= capacity()) {
-		return ItemHand(new Item(head));
+	ItemHand it(new Item(*this));
+	if (!it || !it->readHead(inp) ||
+	    !it->readData(inp)) {
+		return false;
 	}
-	return nullptr;
+	item.emplace(
+	item.begin() + i, it
+	);
+	vol += it->size();
+	return true;
+}
+
+bool StegArch::addItem(QDataStream &inp) {
+	return addItem(item.size(), inp);
 }
 
 StegArch::ItemHand StegArch::getItem(uint i) {
@@ -87,44 +101,47 @@ qint64 StegArch::Buffer::writeData(const char *dat, qint64 len) {
 	return QBuffer::writeData(dat, len);
 }
 
-bool StegArch::Item::Head::write(QDataStream &out) const {
-	out << (quint8) key.size();
-	if (out.writeRawData(key.c_str(), key.size()) != key.size()) {
-		return false;
-	}
-	out << (quint8) mod;
-	out << vol;
-	return out.status() != QDataStream::WriteFailed;
-}
-
-bool StegArch::Item::Head::read(QDataStream &inp) {
-
-	quint8 len; inp >> len; char buf[len];
-	if (inp.readRawData(buf, len) != len) {
-		return false;
-	}
-	key = std::string(buf, len);
-	inp >> len;
-	mod = CompressModeFlag(len);
-	inp >> vol;
-	return inp.status() !=
-	QDataStream::
-	ReadCorruptData;
-}
-
 bool StegArch::Item::writeData(QDataStream &out) const {
 	return out.writeRawData(data(), sizeData()) == sizeData();
 }
 
-bool StegArch::Item::readData(QDataStream &inp) {
-	return inp.readRawData(data(), sizeData()) == sizeData();
+bool StegArch::Item::writeHead(QDataStream &out) const {
+	out << (quint8) key.size();
+	if (out.writeRawData(
+	    key.c_str(), key.size()) != key.size()) {
+		return false;
+	}
+	out << (quint8) compressMode();
+	out << sizeData();
+	return out.status() !=
+	QDataStream::
+	WriteFailed;
 }
 
-bool StegArch::Item::writeHead(QDataStream &out) const {
-	return inf.write(out);
+bool StegArch::Item::readData(QDataStream &inp) {
+	return inp.readRawData(
+	data(), sizeData()
+	) == sizeData();
 }
+
 bool StegArch::Item::readHead(QDataStream &inp) {
-	return inf.read(inp);
+
+	quint32 vol; quint8 len; inp >> len;
+	char buf[len];
+	if (inp.readRawData(buf, len) != len) return false;
+	key = std::string(buf, len);
+	inp >> len;
+	mod = CompressModeFlag(len);
+	inp >> vol;
+	if (own.sizeHead() + own.size() +
+	    sizeHead() + vol >
+	    own.capacity()) {
+	    return false;
+	}
+	dat.resize(vol);
+	return inp.status() !=
+	QDataStream::
+	ReadCorruptData;
 }
 
 #define BUFSIZE (1024)
@@ -164,7 +181,10 @@ bool StegArch::Item::read(QDataStream &inp) {
 	          QIODevice::WriteOnly;
 
 	std::unique_ptr<BinStream> bin;
-	StegArch::Buffer dev(capacity(), &dat); dev.open(flg);
+	quint32 len = own.capacity() - (
+	              own.sizeHead() + own.size() + sizeHead()
+	              );
+	StegArch::Buffer dev(len, &dat); dev.open(flg);
 	dat.resize(0);
 
 	bin.reset(gener(&dev, flg)); if (!bin) return false;
@@ -183,7 +203,6 @@ bool StegArch::Item::read(QDataStream &inp) {
 	if (!bin->flush()) {
 		return false;
 	}
-	inf.vol = sizeData();
 	return true;
 }
 
@@ -196,12 +215,12 @@ bool StegArch::encode() {
 	quint32 num = numItems(); QDataStream str(map); str << num;
 
 	for (auto &it: item) {
-		if (!it->writeHead(str) || !it->writeData(str)) {
-			return false;
-		}
+	    if (!it->writeHead(str) || !it->writeData(str)) {
+	        return false;
+	    }
 	}
 	if (str.status() == QDataStream::WriteFailed) {
-		return false;
+	    return false;
 	}
 	return true;
 }
@@ -209,33 +228,24 @@ bool StegArch::encode() {
 bool StegArch::decode() {
 
 	if (!map) return false;
-
-	std::vector<ItemHand> temp; item.clear(); vol = 0;
-	QDataStream str(map); map->reset();
-	quint32 v = 0;
-	quint32 num; str >> num;
-
+	QDataStream str(map);
+	map->reset();
+	quint32 num;
+	str >> num;
+	clear();
 	for (int i = 0; i < num; ++ i) {
-		Item::Head h; if (!h.read(str)) return false;
-		vol = v;
-		ItemHand it = newItem(h);
-		vol = 0;
-		if (!it) return false;
-		temp.push_back(it);
-		if (!it->readData(str)) {
-			return false;
-		}
-		v += it->size();
+	    if (!addItem(str)) { clear(); return false; }
+	    auto it = item.back();
 	}
 	if (str.status() ==
 	    QDataStream::ReadCorruptData) {
+	    clear();
 	    return false;
 	}
-	item = std::move(temp);
-	vol = v;
 	return true;
 }
 
 void StegArch::clear() {
 	item.clear();
+	vol = 0;
 }

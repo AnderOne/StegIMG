@@ -29,41 +29,19 @@ public:
 	};
 
 	struct Item {
-
-		struct Head {
-			Head(std::string _key, CompressModeFlag _mod, quint32 _vol): key(_key), mod(_mod), vol(_vol) {}
-			Head() {}
-			CompressModeFlag compressMode() const { return mod; }
-			std::string name() const { return key; }
-			quint32 capacity() const { return vol; }
-			quint32 size() const {
-				return sizeof(quint32) +
-				       sizeof(quint8) + key.size() +
-				       sizeof(quint8);
-			}
-			bool write(QDataStream &out) const;
-			bool read(QDataStream &inp);
-		private:
-			friend struct Item;
-			CompressModeFlag mod;
-			std::string key;
-			quint32 vol;
-		};
-
-		Item(std::string key, CompressModeFlag mod, quint32 vol): inf{key, mod, vol} { dat.resize(vol); }
-		Item(const Head &h): inf(h) { dat.resize(inf.capacity()); }
-
-		CompressModeFlag compressMode() const { return inf.compressMode(); }
-		quint32 capacity() const { return inf.capacity(); }
-		std::string name() const { return inf.name(); }
-
-		quint32 sizeHead() const { return inf.size(); }
-		quint32 sizeData() const { return dat.size(); }
-		quint32 size() const { return sizeHead() + sizeData(); }
-
-		const Head &head() const { return inf; }
+		CompressModeFlag compressMode() const { return mod; }
+		std::string name() const { return key; }
 		const char *data() const { return dat.data(); }
 		char *data() { return dat.data(); }
+
+		quint32 sizeHead() const {
+			return sizeof(quint32) + sizeof(quint8) +
+			       key.size() + sizeof(quint8);
+		}
+		quint32 sizeData() const { return dat.size(); }
+		quint32 size() const {
+			return sizeHead() + sizeData();
+		}
 
 		bool writeHead(QDataStream &out) const;
 		bool readHead(QDataStream &inp);
@@ -74,13 +52,21 @@ public:
 		bool read(QDataStream &inp);
 
 	private:
+		Item(StegArch &_own, std::string _key, CompressModeFlag _mod):
+		     own(_own), key(_key), mod(_mod) {}
+		Item(StegArch &_own): own(_own) {}
+
 		typedef QIODevice::OpenModeFlag OpenModeFlag;
+		friend struct StegArch;
 
 		BinStream *gener(
 		    QBuffer *, OpenModeFlag
 		    ) const;
-		Item::Head inf;
+
+		CompressModeFlag mod;
+		std::string key;
 		QByteArray dat;
+		StegArch &own;
 	};
 
 	typedef std::shared_ptr<Item> ItemHand;
@@ -102,6 +88,11 @@ public:
 	        QDataStream &inp);
 	bool addItem(
 	        std::string key, CompressModeFlag mod,
+	        QDataStream &inp);
+	bool addItem(
+	        uint i,
+	        QDataStream &inp);
+	bool addItem(
 	        QDataStream &inp);
 	void delItem(uint i);
 
@@ -126,8 +117,6 @@ public:
 	}
 
 private:
-	ItemHand newItem(const Item::Head &head);
-
 	std::vector<ItemHand> item;
 	std::string key;
 	StegMap *map = nullptr;

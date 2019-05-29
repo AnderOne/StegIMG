@@ -172,10 +172,10 @@ void MainWindow::resetStatus() {
 		auto it = ar->getItem(i);
 		ui->tableWidget->insertRow(i);
 		ui->tableWidget->setItem(
-		i, 0, new QTableWidgetItem(QString(it->head().name().c_str()))
+		i, 1, new QTableWidgetItem(QString::number(it->sizeData()))
 		);
 		ui->tableWidget->setItem(
-		i, 1, new QTableWidgetItem(QString::number(it->capacity()))
+		i, 0, new QTableWidgetItem(QString(it->name().c_str()))
 		);
 		ui->tableWidget->setItem(
 		i, 2, new QTableWidgetItem(METH[it->compressMode()])
