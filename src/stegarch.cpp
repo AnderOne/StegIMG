@@ -29,25 +29,8 @@ bool StegArch::reset(std::string _key) {
 	return map->reset(_key);
 }
 
-StegArch::ItemPointer StegArch::newItem(std::string key, CompressModeFlag mod, quint32 vol) {
-
-	Item::Head head(key, mod, vol);
-	if (sizeHead() + size() +
-	    head.size() + vol <=
-	    capacity()) return ItemPointer(new Item(key, mod, vol));
-
-	return nullptr;
-}
-
-StegArch::ItemPointer StegArch::getItem(uint i) {
-	if (i >= item.size())
-		return nullptr;
-	return item[i];
-}
-
 bool StegArch::addItem(uint i, std::string key, CompressModeFlag mod, QDataStream &inp) {
-	Item::Head head(key, mod, 0);
-	quint32 len = sizeHead() + size() + head.size();
+	Item::Head head(key, mod, 0); quint32 len = sizeHead() + size() + head.size();
 	if (len > capacity()) return false;
 	ItemPointer it(new Item(key, mod, capacity() - len));
 	if (!it) return false;
@@ -63,12 +46,37 @@ bool StegArch::addItem(std::string key, CompressModeFlag mod, QDataStream &inp) 
 	return addItem(item.size(), key, mod, inp);
 }
 
+StegArch::ItemPointer StegArch::newItem(const StegArch::Item::Head &head) {
+
+	if (sizeHead() + size() + head.size() + head.capacity() <= capacity()) {
+		return ItemPointer(new Item(head));
+	}
+	return nullptr;
+}
+
+StegArch::ItemPointer StegArch::getItem(uint i) {
+	if (i >= item.size())
+		return nullptr;
+	return item[i];
+}
+
 void StegArch::delItem(uint i) {
 	if (i >= item.size()) return;
 	vol -= item[i]->size();
 	item.erase(
 	item.begin() + i
 	);
+}
+
+BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) const {
+
+	switch (compressMode()) {
+	case None: return new BinStream(buf, flg);
+	case RLE: return new RLEStream(buf, flg);
+	case LZW: return new LZWStream(buf, flg);
+	}
+
+	return nullptr;
 }
 
 qint64 StegArch::Buffer::writeData(const char *dat, qint64 len) {
@@ -79,18 +87,44 @@ qint64 StegArch::Buffer::writeData(const char *dat, qint64 len) {
 	return QBuffer::writeData(dat, len);
 }
 
-BinStream *StegArch::Item::gener(QBuffer *buf, OpenModeFlag flg) const {
-
-	switch (compressMode()) {
-	case None:
-		return new BinStream(buf, flg);
-	case RLE:
-		return new RLEStream(buf, flg);
-	case LZW:
-		return new LZWStream(buf, flg);
+bool StegArch::Item::Head::write(QDataStream &out) const {
+	out << (quint8) key.size();
+	if (out.writeRawData(key.c_str(), key.size()) != key.size()) {
+		return false;
 	}
+	out << (quint8) mod;
+	out << vol;
+	return out.status() != QDataStream::WriteFailed;
+}
 
-	return nullptr;
+bool StegArch::Item::Head::read(QDataStream &inp) {
+
+	quint8 len; inp >> len; char buf[len];
+	if (inp.readRawData(buf, len) != len) {
+		return false;
+	}
+	key = std::string(buf, len);
+	inp >> len;
+	mod = CompressModeFlag(len);
+	inp >> vol;
+	return inp.status() !=
+	QDataStream::
+	ReadCorruptData;
+}
+
+bool StegArch::Item::writeData(QDataStream &out) const {
+	return out.writeRawData(data(), sizeData()) == sizeData();
+}
+
+bool StegArch::Item::readData(QDataStream &inp) {
+	return inp.readRawData(data(), sizeData()) == sizeData();
+}
+
+bool StegArch::Item::writeHead(QDataStream &out) const {
+	return inf.write(out);
+}
+bool StegArch::Item::readHead(QDataStream &inp) {
+	return inf.read(inp);
 }
 
 #define BUFSIZE (1024)
@@ -149,6 +183,7 @@ bool StegArch::Item::read(QDataStream &inp) {
 	if (!bin->flush()) {
 		return false;
 	}
+	inf.vol = sizeData();
 	return true;
 }
 
@@ -161,13 +196,7 @@ bool StegArch::encode() {
 	quint32 num = numItems(); QDataStream str(map); str << num;
 
 	for (auto &it: item) {
-		quint8 len = it->name().size(); str << len;
-		char *s = it->name().c_str();
-		str.writeRawData(s, len);
-		quint8 mod = it->compressMode();
-		num = it->sizeData();
-		str << mod << num;
-		if (str.writeRawData(it->data(), num) != num) {
+		if (!it->writeHead(str) || !it->writeData(str)) {
 			return false;
 		}
 	}
@@ -187,17 +216,14 @@ bool StegArch::decode() {
 	quint32 num; str >> num;
 
 	for (int i = 0; i < num; ++ i) {
-		quint8 n; str >> n; char buf[n];
-		if (str.readRawData(buf, n) != n) return false;
-		std::string s(buf, n);
-		quint8 m; str >> m; quint32 len; str >> len;
+		Item::Head h; if (!h.read(str)) return false;
 		vol = v;
-		auto it = newItem(s, m, len);
+		ItemPointer it = newItem(h);
 		vol = 0;
 		if (!it) return false;
 		temp.push_back(it);
-		if (str.readRawData(it->data(), len) != len) {
-		    return false;
+		if (!it->readData(str)) {
+			return false;
 		}
 		v += it->size();
 	}

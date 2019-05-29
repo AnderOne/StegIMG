@@ -32,6 +32,7 @@ public:
 
 		struct Head {
 			Head(std::string _key, CompressModeFlag _mod, quint32 _vol): key(_key), mod(_mod), vol(_vol) {}
+			Head() {}
 			CompressModeFlag compressMode() const { return mod; }
 			std::string name() const { return key; }
 			quint32 capacity() const { return vol; }
@@ -40,6 +41,8 @@ public:
 				       sizeof(quint8) + key.size() +
 				       sizeof(quint8);
 			}
+			bool write(QDataStream &out) const;
+			bool read(QDataStream &inp);
 		private:
 			friend struct Item;
 			CompressModeFlag mod;
@@ -48,6 +51,7 @@ public:
 		};
 
 		Item(std::string key, CompressModeFlag mod, quint32 vol): inf{key, mod, vol} { dat.resize(vol); }
+		Item(const Head &h): inf(h) { dat.resize(inf.capacity()); }
 
 		CompressModeFlag compressMode() const { return inf.compressMode(); }
 		quint32 capacity() const { return inf.capacity(); }
@@ -61,8 +65,14 @@ public:
 		const char *data() const { return dat.data(); }
 		char *data() { return dat.data(); }
 
+		bool writeHead(QDataStream &out) const;
+		bool readHead(QDataStream &inp);
+		bool writeData(QDataStream &out) const;
+		bool readData(QDataStream &inp);
+
 		bool write(QDataStream &out) const;
 		bool read(QDataStream &inp);
+
 	private:
 		typedef QIODevice::OpenModeFlag
 		OpenModeFlag;
@@ -118,10 +128,7 @@ public:
 	}
 
 private:
-	ItemPointer newItem(
-	    std::string key, CompressModeFlag mod,
-	    quint32 vol
-	    );
+	ItemPointer newItem(const Item::Head &head);
 
 	std::vector<ItemPointer> item;
 	std::string key;
