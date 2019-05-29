@@ -68,12 +68,6 @@ bool StegArch::addItem(QDataStream &inp) {
 	return addItem(item.size(), inp);
 }
 
-StegArch::ItemHand StegArch::getItem(uint i) {
-	if (i >= item.size())
-		return nullptr;
-	return item[i];
-}
-
 void StegArch::delItem(uint i) {
 	if (i >= item.size()) return;
 	vol -= item[i]->size();

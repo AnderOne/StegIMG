@@ -69,6 +69,7 @@ public:
 		StegArch &own;
 	};
 
+	typedef std::shared_ptr<const Item> Const_ItemHand;
 	typedef std::shared_ptr<Item> ItemHand;
 
 	virtual ~StegArch();
@@ -79,7 +80,11 @@ public:
 	bool reset(const QImage &img);
 	bool reset(std::string key);
 
-	ItemHand getItem(uint i);
+	Const_ItemHand getItem(uint i) const {
+		if (i >= item.size())
+			return nullptr;
+		return item[i];
+	}
 	quint32 numItems() const {
 		return item.size();
 	}
