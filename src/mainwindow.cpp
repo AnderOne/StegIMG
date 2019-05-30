@@ -23,10 +23,13 @@ void MainWindow::onInputImageClick() {
 		return;
 	}
 	if (ar) delete ar;
-	ui->inputImageView->update((ar = new StegArch(img))->image());
+
+	ar = new StegArch(img);
 	ui->buttonEncrypt->setEnabled(true);
 	ui->buttonDecrypt->setEnabled(true);
 	ui->buttonAddItem->setEnabled(true);
+	ui->imageView->update(ar->image());
+	ui->tableView->update(ar);
 
 	resetStatus();
 }
@@ -36,7 +39,7 @@ void MainWindow::onEncryptClick() {
 	bool flag = false;
 	QString pass = QInputDialog::getText(this, "Password", "", QLineEdit::Password, "", &flag);
 	if (!flag) {
-		QMessageBox::information(this, "", "Operation was aborted!");
+		QMessageBox::information(this, "", "Operation is aborted!");
 		return;
 	}
 	if (pass.isNull()) {
@@ -78,13 +81,14 @@ void MainWindow::onDecryptClick() {
 	bool flag = false;
 	QString pass = QInputDialog::getText(this, "Password", "", QLineEdit::Password, "", &flag);
 	if (!flag) {
-		QMessageBox::information(this, "", "Operation was aborted!");
+		QMessageBox::information(this, "", "Operation is aborted!");
 		return;
 	}
-	if (pass.isNull()) {
-		pass = "";
-	}
+	if (pass.isNull()) pass = "";
+
+	ui->tableView->reset();
 	ar->clear();
+	resetStatus();
 
 	if (!ar->reset(pass.toStdString())) {
 		QMessageBox::warning(this, "Error", "Failed to apply key!");
@@ -96,6 +100,7 @@ void MainWindow::onDecryptClick() {
 		resetStatus();
 		return;
 	}
+	ui->tableView->update(ar);
 	resetStatus();
 }
 
@@ -106,16 +111,24 @@ void MainWindow::onAddClick() {
 
 	CompressorDialog dialog(this);
 	if (!dialog.exec()) {
-		QMessageBox::information(this, "", "Operation was aborted!");
+		QMessageBox::information(this, "", "Operation is aborted!");
 		return;
 	}
 	StegArch::CompressModeFlag mod = dialog.getCompressMode();
 	std::string key = dialog.getItemName();
 
-	QFile file(fileName); file.open(QIODevice::ReadOnly);
-	QDataStream inp(&file);
-	if (!ar->addItem(key, mod, inp)) {
-		QMessageBox::warning(this, "Error", "Too long file!");
+	qint32 pos = ui->tableView->selectedRow();
+	if (pos < 0) {
+		pos = ui->tableView->rowCount();
+	}
+
+	QFile file(fileName); QDataStream inp(&file);
+	file.open(QIODevice::ReadOnly);
+	if (!ui->tableView->insertItem(
+	    pos, key, mod, inp)) {
+		QMessageBox::warning(
+		this, "Error", "Too long file!"
+		);
 		return;
 	}
 	resetStatus();
@@ -123,17 +136,16 @@ void MainWindow::onAddClick() {
 
 void MainWindow::onGetClick() {
 
-	std::set<int> ind; for (auto it: ui->tableWidget->selectedItems()) ind.insert(it->row());
-	if (ind.size() != 1) {
-		return;
-	}
+	StegArch::Const_ItemHand it = ui->tableView->selectedItem();
+	if (!it) return;
+
 	QString fileName = QFileDialog::getSaveFileUrl(this, "Save File", QUrl()).toLocalFile();
 	if (fileName.isNull()) {
+		QMessageBox::information(this, "", "Operation is aborted!");
 		return;
 	}
 	QFile file(fileName); file.open(QIODevice::WriteOnly);
 	QDataStream out(&file);
-	auto it = ar->getItem(*ind.begin());
 	if (!it->write(out)) {
 		QMessageBox::warning(
 		this, "Error",
@@ -144,16 +156,16 @@ void MainWindow::onGetClick() {
 }
 
 void MainWindow::onDelClick() {
-	std::set<int> ind;
-	for (auto it: ui->tableWidget->selectedItems()) ind.insert(it->row());
-	for (auto i: ind) {
-		ar->delItem(i);
-	}
+	qint32 id = ui->tableView->selectedRow();
+	if (id < 0) return;
+	ui->tableView->removeItem(id);
 	resetStatus();
 }
 
 void MainWindow::onSelect() {
-	bool fl = !ui->tableWidget->selectedItems().empty();
+	bool fl = !ui->tableView->
+	           selectedItems().
+	           empty();
 	ui->buttonGetItem->
 	    setEnabled(fl);
 	ui->buttonDelItem->
@@ -162,25 +174,8 @@ void MainWindow::onSelect() {
 
 void MainWindow::resetStatus() {
 
-	ui->hiddenDataSize->setEnabled(false); ui->inputImageInfo->setText("");
-	while (ui->tableWidget->rowCount()) ui->tableWidget->removeRow(0);
+	ui->hiddenDataSize->setEnabled(false); ui->imageInfo->setText("");
 	if (!ar) return;
-
-	const static QString METH[] = {"None", "RLE", "LZW"};
-
-	for (int i = 0; i < ar->numItems(); ++ i) {
-		auto it = ar->getItem(i);
-		ui->tableWidget->insertRow(i);
-		ui->tableWidget->setItem(
-		i, 1, new QTableWidgetItem(QString::number(it->sizeData()))
-		);
-		ui->tableWidget->setItem(
-		i, 0, new QTableWidgetItem(QString(it->name().c_str()))
-		);
-		ui->tableWidget->setItem(
-		i, 2, new QTableWidgetItem(METH[it->compressMode()])
-		);
-	}
 
 	//Calculation of steganographic capacity:
 	uint32_t size;
@@ -196,7 +191,7 @@ void MainWindow::resetStatus() {
 		info = QString::number(kb, 'f', 2) +
 		     " KB (" + info + ")";
 	}
-	ui->inputImageInfo->setText(
+	ui->imageInfo->setText(
 	"Capacity: " + info
 	);
 

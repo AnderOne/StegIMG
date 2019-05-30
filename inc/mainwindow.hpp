@@ -8,6 +8,7 @@
 #include <QMainWindow>
 
 #include "compressordialog.hpp"
+#include "tableview.hpp"
 #include "stegarch.hpp"
 
 namespace Ui {

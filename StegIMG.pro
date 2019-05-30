@@ -34,6 +34,7 @@ HEADERS += \
     inc/rlestream.hpp \
     inc/lzwstream.hpp \
     inc/imageview.hpp \
+    inc/tableview.hpp \
     inc/compressordialog.hpp \
     inc/mainwindow.hpp
 
@@ -44,6 +45,7 @@ SOURCES += \
     src/rlestream.cpp \
     src/lzwstream.cpp \
     src/imageview.cpp \
+    src/tableview.cpp \
     src/compressordialog.cpp \
     src/mainwindow.cpp \
     src/main.cpp

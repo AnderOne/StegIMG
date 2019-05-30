@@ -36,7 +36,7 @@
           <widget class="QWidget" name="horizontalLayoutWidget">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
-             <widget class="ImageView" name="inputImageView">
+             <widget class="ImageView" name="imageView">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -53,7 +53,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QTableWidget" name="tableWidget">
+          <widget class="TableView" name="tableView">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -68,9 +68,6 @@
            </property>
            <property name="layoutDirection">
             <enum>Qt::LeftToRight</enum>
-           </property>
-           <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
            </property>
            <property name="selectionMode">
             <enum>QAbstractItemView::SingleSelection</enum>
@@ -112,7 +109,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="inputImageInfo">
+       <widget class="QLabel" name="imageInfo">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -227,10 +224,15 @@
    <extends>QGraphicsView</extends>
    <header location="global">imageview.hpp</header>
   </customwidget>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QTableWidget</extends>
+   <header>tableview.hpp</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>inputImageView</tabstop>
-  <tabstop>tableWidget</tabstop>
+  <tabstop>imageView</tabstop>
+  <tabstop>tableView</tabstop>
   <tabstop>buttonImage</tabstop>
   <tabstop>buttonEncrypt</tabstop>
   <tabstop>buttonDecrypt</tabstop>
@@ -337,7 +339,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>tableWidget</sender>
+   <sender>tableView</sender>
    <signal>itemSelectionChanged()</signal>
    <receiver>MainWindow</receiver>
    <slot>onSelect()</slot>
