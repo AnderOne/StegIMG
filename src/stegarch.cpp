@@ -71,8 +71,12 @@ bool StegArch::insertItem(QDataStream &inp) {
 
 void StegArch::removeItem(const Const_ItemHand &itr) {
 	if (itr == nullptr) return;
-	item.erase(dict[itr.get()]);
-	dict.erase(itr.get());
+	auto pos = dict.find(itr.get());
+	if (pos == dict.end()) {
+		return;
+	}
+	item.erase(pos->second);
+	dict.erase(pos);
 	vol -= itr->size();
 }
 
