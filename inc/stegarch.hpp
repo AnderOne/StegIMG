@@ -88,21 +88,24 @@ public:
 		return item;
 	}
 
-	bool renameItem(const Const_ItemHand &itr, std::string key);
+	Const_ItemHand insertItem(const Const_ItemHand &pos,
+	                          std::string  key,
+	                          CompressModeFlag mod,
+	                          QDataStream &inp);
+
+	Const_ItemHand insertItem(const Const_ItemHand &pos,
+	                          QDataStream &inp);
+
+	Const_ItemHand insertItem(std::string  key,
+	                          CompressModeFlag mod,
+	                          QDataStream &inp);
+
+	Const_ItemHand insertItem(QDataStream &inp);
+
+	bool renameItem(const Const_ItemHand &itr,
+	                std::string key);
 
 	void removeItem(const Const_ItemHand &itr);
-
-	bool insertItem(const Const_ItemHand &pos, std::string key,
-	                CompressModeFlag mod,
-	                QDataStream &inp);
-
-	bool insertItem(const Const_ItemHand &pos,
-	                QDataStream &inp);
-
-	bool insertItem(std::string  key, CompressModeFlag mod,
-	                QDataStream &inp);
-
-	bool insertItem(QDataStream &inp);
 
 	bool encode();
 	bool decode();

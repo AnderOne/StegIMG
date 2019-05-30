@@ -30,42 +30,51 @@ bool StegArch::reset(std::string _key) {
 	return map->reset(_key);
 }
 
-bool StegArch::insertItem(const Const_ItemHand &pos, std::string key, CompressModeFlag mod, QDataStream &inp) {
+StegArch::Const_ItemHand StegArch::insertItem(
+const Const_ItemHand &pos, std::string key, CompressModeFlag mod,
+QDataStream &inp) {
 
 	ItemHand itr(new Item(*this, key, mod));
-	if (!itr) return false;
+	if (!itr) return nullptr;
 	quint32 len = sizeHead() + size() +
 	        itr->sizeHead();
 	if (len > capacity() ||
 	    !itr->read(inp)) {
-		return false;
+		return nullptr;
 	}
 	dict[itr.get()] = item.insert(
 	dict[pos.get()], itr
 	);
 	vol += itr->size();
-	return true;
+	return itr;
 }
 
-bool StegArch::insertItem(std::string key, CompressModeFlag mod, QDataStream &inp) {
+StegArch::Const_ItemHand StegArch::insertItem(
+std::string  key, CompressModeFlag mod,
+QDataStream &inp) {
+
 	return insertItem(nullptr, key, mod, inp);
 }
 
-bool StegArch::insertItem(const Const_ItemHand &pos, QDataStream &inp) {
+StegArch::Const_ItemHand StegArch::insertItem(
+const Const_ItemHand &pos,
+QDataStream &inp) {
 
 	ItemHand itr(new Item(*this));
 	if (!itr || !itr->readHead(inp) ||
 	    !itr->readData(inp)) {
-		return false;
+		return nullptr;
 	}
 	dict[itr.get()] = item.insert(
 	dict[pos.get()], itr
 	);
 	vol += itr->size();
-	return true;
+	return itr;
 }
 
-bool StegArch::insertItem(QDataStream &inp) {
+StegArch::Const_ItemHand StegArch::insertItem(
+QDataStream &inp) {
+
 	return insertItem(nullptr, inp);
 }
 
