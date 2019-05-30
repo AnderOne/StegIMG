@@ -19,7 +19,7 @@ void MainWindow::onInputImageClick() {
 	}
 	QImage img;
 	if (!img.load(fileName)) {
-		QMessageBox::warning(this, "Error", "Invalid image format!");
+		QMessageBox::warning(this, "Error", "Failed to load image!");
 		return;
 	}
 	if (ar) delete ar;
@@ -71,10 +71,15 @@ void MainWindow::onEncryptClick() {
 	if (((end != "png") && (end != "bmp")) ||
 	     (end == name))
 	     fileName += "." + (end = "bmp");
-	ar->image().save(
-	fileName,
-	end.toStdString().c_str()
-	);
+	if (!ar->image().save(
+	fileName, end.toStdString().c_str()
+	)) {
+		QMessageBox::warning(
+		this, "Error",
+		"Failed to save file!"
+		);
+		return;
+	}
 }
 
 void MainWindow::onDecryptClick() {
@@ -127,8 +132,14 @@ void MainWindow::onAddClick(bool after) {
 		pos += after;
 	}
 
-	QFile file(fileName); QDataStream inp(&file);
-	file.open(QIODevice::ReadOnly);
+	QFile file(fileName); file.open(QIODevice::ReadOnly);
+	if (!file.isReadable()) {
+		QMessageBox::warning(
+		this, "Error", "Failed to read file!"
+		);
+		return;
+	}
+	QDataStream inp(&file);
 	if (!ui->tableView->insertItem(
 	    pos, key, mod, inp)) {
 		QMessageBox::warning(
@@ -162,7 +173,7 @@ void MainWindow::onGetClick() {
 	if (!it->write(out)) {
 		QMessageBox::warning(
 		this, "Error",
-		"File save failed!"
+		"Failed to save file!"
 		);
 		return;
 	}
