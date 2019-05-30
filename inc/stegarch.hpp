@@ -88,6 +88,8 @@ public:
 		return item;
 	}
 
+	bool renameItem(const Const_ItemHand &itr, std::string key);
+
 	void removeItem(const Const_ItemHand &itr);
 
 	bool insertItem(const Const_ItemHand &pos, std::string key,

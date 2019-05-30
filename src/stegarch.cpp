@@ -69,6 +69,15 @@ bool StegArch::insertItem(QDataStream &inp) {
 	return insertItem(nullptr, inp);
 }
 
+bool StegArch::renameItem(const Const_ItemHand &itr, std::string _key) {
+	if (_key.size() > 255) return false;
+	quint32 n = sizeHead() + size() - itr->key.size() + _key.size();
+	if (n > capacity()) return false;
+	vol = vol - itr->key.size() + _key.size();
+	itr->key = _key;
+	return true;
+}
+
 void StegArch::removeItem(const Const_ItemHand &itr) {
 	if (itr == nullptr) return;
 	auto pos = dict.find(itr.get());
