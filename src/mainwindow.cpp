@@ -25,9 +25,10 @@ void MainWindow::onInputImageClick() {
 	if (ar) delete ar;
 
 	ar = new StegArch(img);
+	ui->buttonAddBefore->setEnabled(true);
+	ui->buttonAddAfter->setEnabled(true);
 	ui->buttonEncrypt->setEnabled(true);
 	ui->buttonDecrypt->setEnabled(true);
-	ui->buttonAddItem->setEnabled(true);
 	ui->imageView->update(ar->image());
 	ui->tableView->update(ar);
 
@@ -104,7 +105,7 @@ void MainWindow::onDecryptClick() {
 	resetStatus();
 }
 
-void MainWindow::onAddClick() {
+void MainWindow::onAddClick(bool after) {
 
 	QString fileName = QFileDialog::getOpenFileUrl(this, "Open File", QUrl()).toLocalFile();
 	if (fileName.isNull()) return;
@@ -119,7 +120,11 @@ void MainWindow::onAddClick() {
 
 	qint32 pos = ui->tableView->selectedRow();
 	if (pos < 0) {
-		pos = ui->tableView->rowCount();
+		pos = after?
+		      ui->tableView->rowCount(): 0;
+	}
+	else {
+		pos += after;
 	}
 
 	QFile file(fileName); QDataStream inp(&file);
@@ -132,6 +137,14 @@ void MainWindow::onAddClick() {
 		return;
 	}
 	resetStatus();
+}
+
+void MainWindow::onAddBeforeClick() {
+	onAddClick(false);
+}
+
+void MainWindow::onAddAfterClick() {
+	onAddClick(true);
 }
 
 void MainWindow::onGetClick() {
@@ -155,21 +168,17 @@ void MainWindow::onGetClick() {
 	}
 }
 
+void MainWindow::onSelect() {
+	bool fl = !ui->tableView->selectedItems().empty();
+	ui->buttonGet->setEnabled(fl);
+	ui->buttonDel->setEnabled(fl);
+}
+
 void MainWindow::onDelClick() {
 	qint32 id = ui->tableView->selectedRow();
 	if (id < 0) return;
 	ui->tableView->removeItem(id);
 	resetStatus();
-}
-
-void MainWindow::onSelect() {
-	bool fl = !ui->tableView->
-	           selectedItems().
-	           empty();
-	ui->buttonGetItem->
-	    setEnabled(fl);
-	ui->buttonDelItem->
-	    setEnabled(fl);
 }
 
 void MainWindow::resetStatus() {

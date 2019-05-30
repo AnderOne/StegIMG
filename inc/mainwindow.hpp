@@ -24,11 +24,13 @@ private slots:
 	void onInputImageClick();
 	void onEncryptClick();
 	void onDecryptClick();
-	void onAddClick();
+	void onAddBeforeClick();
+	void onAddAfterClick();
 	void onGetClick();
 	void onDelClick();
 	void onSelect();
 private:
+	void onAddClick(bool);
 	void resetStatus();
 	Ui::MainWindow *ui;
 	StegArch *ar = 0;
