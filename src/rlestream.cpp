@@ -1,4 +1,4 @@
-#include "rlestream.hpp"
+#include <rlestream.hpp>
 #include <algorithm>
 #include <climits>
 #include <cstdlib>

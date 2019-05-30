@@ -1,4 +1,4 @@
-#include "tableview.hpp"
+#include <tableview.hpp>
 #include <QMessageBox>
 
 TableView::TableView(QWidget *parent): QTableWidget(0, 3, parent) {

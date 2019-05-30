@@ -7,9 +7,9 @@
 #include <QMessageBox>
 #include <QMainWindow>
 
-#include "compressordialog.hpp"
-#include "tableview.hpp"
-#include "stegarch.hpp"
+#include <compressordialog.hpp>
+#include <tableview.hpp>
+#include <stegarch.hpp>
 
 namespace Ui {
 class MainWindow;

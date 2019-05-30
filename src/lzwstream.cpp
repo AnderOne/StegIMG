@@ -1,4 +1,4 @@
-#include "lzwstream.hpp"
+#include <lzwstream.hpp>
 #include <algorithm>
 #include <climits>
 #include <cstdlib>

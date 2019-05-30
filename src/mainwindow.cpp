@@ -1,5 +1,5 @@
 #include "ui_mainwindow.h"
-#include "mainwindow.hpp"
+#include <mainwindow.hpp>
 
 #include <QInputDialog>
 #include <QFileDialog>

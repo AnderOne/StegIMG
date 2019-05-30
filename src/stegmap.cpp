@@ -1,4 +1,4 @@
-#include "stegmap.hpp"
+#include <stegmap.hpp>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>

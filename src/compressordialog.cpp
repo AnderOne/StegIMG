@@ -1,5 +1,5 @@
 #include "ui_compressordialog.h"
-#include "compressordialog.hpp"
+#include <compressordialog.hpp>
 
 CompressorDialog::CompressorDialog(QWidget *parent):
 	QDialog(parent), ui(new Ui::CompressorDialog) {

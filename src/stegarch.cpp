@@ -1,4 +1,4 @@
-#include "stegarch.hpp"
+#include <stegarch.hpp>
 
 StegArch::~StegArch() { delete map; }
 

@@ -1,8 +1,7 @@
+#include <imageview.hpp>
 #include <QGraphicsPixmapItem>
 #include <QResizeEvent>
 #include <QWheelEvent>
-
-#include "imageview.hpp"
 
 ImageView::ImageView(QWidget *parent): QGraphicsView(parent) {
 	this->setScene(scene = new QGraphicsScene(this));
