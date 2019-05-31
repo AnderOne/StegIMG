@@ -25,25 +25,25 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 QMAKE_CXXFLAGS += -fpermissive
 
-INCLUDEPATH += inc
+INCLUDEPATH += inc inc/steg
 
 HEADERS += \
-    inc/stegmap.hpp \
-    inc/stegarch.hpp \
-    inc/binstream.hpp \
-    inc/rlestream.hpp \
-    inc/lzwstream.hpp \
+    inc/steg/binstream.hpp \
+    inc/steg/rlestream.hpp \
+    inc/steg/lzwstream.hpp \
+    inc/steg/stegmap.hpp \
+    inc/steg/stegarch.hpp \
     inc/imageview.hpp \
     inc/tableview.hpp \
     inc/compressordialog.hpp \
     inc/mainwindow.hpp
 
 SOURCES += \
-    src/stegmap.cpp \
-    src/stegarch.cpp \
-    src/binstream.cpp \
-    src/rlestream.cpp \
-    src/lzwstream.cpp \
+    src/steg/binstream.cpp \
+    src/steg/rlestream.cpp \
+    src/steg/lzwstream.cpp \
+    src/steg/stegmap.cpp \
+    src/steg/stegarch.cpp \
     src/imageview.cpp \
     src/tableview.cpp \
     src/compressordialog.cpp \
